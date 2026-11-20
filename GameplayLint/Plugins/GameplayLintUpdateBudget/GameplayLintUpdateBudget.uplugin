@@ -1,0 +1,31 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "Gameplay Lint: UpdateBudget Rules",
+	"Description": "Rule pack: the documented mistakes of the UE5-UpdateBudget project turned into data rules (per-frame ticking outside the update budget, budget clients in the wrong tick group or never ticking).",
+	"Category": "Editor",
+	"CreatedBy": "",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"EnabledByDefault": true,
+	"CanContainContent": false,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "GameplayLintUpdateBudget",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "GameplayLintCore",
+			"Enabled": true
+		}
+	]
+}

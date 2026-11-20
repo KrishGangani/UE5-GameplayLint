@@ -53,7 +53,7 @@ We present GameplayLint as rule packs on Epic's framework, never as a new valida
 
 ## 4. The first rule pack comes from UE5-UpdateBudget's documented mistakes
 
-The roadmap says the rules encode the lessons of Projects 1–9. Only UE5-UpdateBudget exists today. Its `07_Common_Mistakes.md` lists 40 mistakes. Most are **code** mistakes, which a data rule cannot see: they belong to code review and to the mutation tests of a later portfolio project (UE5-TestTrust). The ones that live in **data** become rules:
+The roadmap says the rules encode the lessons of Projects 1–9. Only UE5-UpdateBudget exists today. Its `07_Common_Mistakes.md` lists more than 40 mistakes. Most are **code** mistakes, which a data rule cannot see: they belong to code review and to the mutation tests of a later portfolio project (UE5-TestTrust). The ones that live in **data** become rules:
 
 | UE5-UpdateBudget mistake or plan | Lives in | Becomes |
 |---|---|---|
@@ -159,11 +159,11 @@ If a criterion fails, the result is reported and analysed. Thresholds are not mo
 ## 8. Measurement plan (summary; the full protocol goes in `09_Testing_And_Benchmarks.md`)
 
 - **What runs:** the Development editor binary `UnrealEditor-Cmd.exe` in commandlet mode, `-unattended -nullrhi -nosplash -traceautostart=0 -stdout`, through the UE job queue. This is editor tooling, so there is no packaged or fixed-step run for the headline numbers (`01b` §4). The packaged game exists only to prove that no lint code reaches a runtime build.
-- **CPU:** every timed run is pinned to the performance cores (mask `FFFF` = logical CPUs 0–15 of the hybrid i7-14650HX, from `Tools\core_mask.py`). The runner starts `UnrealEditor-Cmd.exe` itself with `subprocess.Popen`, pins it at once with `pin_process`, waits with a timeout and kills the process tree in a `finally` block; the mask actually applied is recorded per run. It never launches through `cmd /c start /wait`, which returns 0 whatever the program returned.
+- **CPU:** every timed run is pinned to the performance cores (mask `FFFF` = logical CPUs 0–15 of the hybrid i7-14650HX, from `Tools\core_mask.py`). The runner pins **itself** once with `pin_self`, before it records the environment or starts anything, so every `UnrealEditor-Cmd.exe` it starts inherits the mask from its first instruction (engine start-up included). It starts the editor with `subprocess.Popen`, waits with a timeout and kills the process tree in a `finally` block; the mask read back with `applied_mask()` is recorded. It never launches through `cmd /c start /wait`, which returns 0 whatever the program returned.
 - **Protocol for times:**
   - one discarded priming run per batch (warms the file cache and the DDC);
   - configurations interleaved, with the order rotated each round;
-  - **runs per combination = number of configurations**: 4 runs for F0–F3, 4 runs for I0–I3, so each configuration sits in each position once;
+  - **runs per combination = the smallest multiple of the number of configurations that is at least 4** (UE5-UpdateBudget's rule, which also avoids a "median" of one or two runs): 4 runs for F0–F3, 4 for I0–I3, 4 for the two-configuration baseline (stock and F0), so each configuration sits in each position equally often;
   - median across runs with the [min–max] range;
   - an improvement or overhead is claimed only when the ranges support it.
 - **Correctness numbers** come from the same runs. They are deterministic; E2 checks that every run of one configuration gives the same findings.

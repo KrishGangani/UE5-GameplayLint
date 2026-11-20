@@ -1,0 +1,36 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.8",
+	"Category": "",
+	"Description": "P10 GameplayLint: meaning-level checks for gameplay data (UE 5.8.4 portfolio project).",
+	"Modules": [
+		{
+			"Name": "GameplayLint",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "GameplayLintBench",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "GameplayLintCore",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayLintDataRules",
+			"Enabled": true
+		},
+		{
+			"Name": "GameplayLintUpdateBudget",
+			"Enabled": true
+		},
+		{
+			"Name": "AndroidFileServer",
+			"Enabled": false
+		}
+	]
+}

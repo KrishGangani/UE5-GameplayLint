@@ -70,9 +70,9 @@ D:\UNREAL PORTFOLIO\P10_GameplayLint\Tools\  ← scan runner, scoring, CPU mask,
 
 | Module | Type | Responsibility | Depends on |
 |---|---|---|---|
-| `GameplayLintCore` (plugin) | Editor | Rule base class, finding and report types, data walker, settings, report subsystem, child commandlet | `Core`, `CoreUObject`, `Engine`, `DataValidation` (public); `AssetRegistry`, `DeveloperSettings`, `Json` (private, added when used) |
+| `GameplayLintCore` (plugin) | Editor | Rule base class, finding and report types, data walker, settings, report subsystem, child commandlet | `Core`, `CoreUObject`, `Engine`, `DataValidation` (public); `AssetRegistry`, `DeveloperSettings`, `EditorSubsystem`, `UnrealEd`, `Json` (private, each added in the step that first uses it) |
 | `GameplayLintDataRules` (plugin) | Editor | `GL.Data.UnknownTag`, `GL.Data.DanglingRow`, `GL.Data.Curve` | `GameplayLintCore`, `GameplayTags` |
-| `GameplayLintUpdateBudget` (plugin) | Editor | `GL.UB.TickOutsideBudget`, `GL.UB.ClientTickGroup`, `GL.UB.ClientNeverTicks`, and the pack's settings | `GameplayLintCore` |
+| `GameplayLintUpdateBudget` (plugin) | Editor | `GL.UB.TickOutsideBudget`, `GL.UB.ClientTickGroup`, `GL.UB.ClientNeverTicks`, and the pack's settings | `GameplayLintCore`, `DeveloperSettings` |
 | `GameplayLint` (project, primary) | Runtime | Fixture gameplay types: a data asset, a DataTable row struct, payload structs, an instanced object, an agent actor, a stand-in budget client component, a plain ticking component | `GameplayTags` |
 | `GameplayLintBench` (project) | Editor | `UGameplayLintSeedCommandlet`: builds the corpus and its ground truth from a seed; applies mutations M1–M4 | `GameplayLint`, `UnrealEd`, `Kismet`, `GameplayTags`, `Json` |
 | `Tools\` | Python, batch | `run_scan.py` (interleaved, pinned runs and the batch manifest), `score.py` (recall and false positives vs ground truth), `core_mask.py`, `build.bat`, `package.bat`, `smoke_game.bat`, `validate.bat` | — |
