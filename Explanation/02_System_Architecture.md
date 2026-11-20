@@ -70,12 +70,14 @@ D:\UNREAL PORTFOLIO\P10_GameplayLint\Tools\  ← scan runner, scoring, CPU mask,
 
 | Module | Type | Responsibility | Depends on |
 |---|---|---|---|
-| `GameplayLintCore` (plugin) | Editor | Rule base class, finding and report types, data walker, settings, report subsystem, child commandlet | `Core`, `CoreUObject`, `Engine`, `DataValidation` (public); `AssetRegistry`, `DeveloperSettings`, `EditorSubsystem`, `UnrealEd`, `Json` (private, each added in the step that first uses it) |
-| `GameplayLintDataRules` (plugin) | Editor | `GL.Data.UnknownTag`, `GL.Data.DanglingRow`, `GL.Data.Curve` | `GameplayLintCore`, `GameplayTags` |
-| `GameplayLintUpdateBudget` (plugin) | Editor | `GL.UB.TickOutsideBudget`, `GL.UB.ClientTickGroup`, `GL.UB.ClientNeverTicks`, and the pack's settings | `GameplayLintCore`, `DeveloperSettings` |
-| `GameplayLint` (project, primary) | Runtime | Fixture gameplay types: a data asset, a DataTable row struct, payload structs, an instanced object, an agent actor, a stand-in budget client component, a plain ticking component | `GameplayTags` |
-| `GameplayLintBench` (project) | Editor | `UGameplayLintSeedCommandlet`: builds the corpus and its ground truth from a seed; applies mutations M1–M4 | `GameplayLint`, `UnrealEd`, `Kismet`, `GameplayTags`, `Json` |
+| `GameplayLintCore` (plugin) | Editor | Rule base class, finding and report types, data walker, settings, report subsystem, child commandlet | Public: `Core`, `CoreUObject`, `Engine`, `DataValidation`, `DeveloperSettings`, `EditorSubsystem` (the public headers derive from their classes). Private: `Json`, `SourceControl` (`DataValidationChangelist.h` includes its headers), `UnrealEd` (`GEditor`); `AssetRegistry` when first used |
+| `GameplayLintDataRules` (plugin) | Editor | `GL.Data.UnknownTag`, `GL.Data.DanglingRow`, `GL.Data.Curve` | `GameplayLintCore`, `DataValidation` (see the link rule below), `GameplayTags`, `AssetRegistry` |
+| `GameplayLintUpdateBudget` (plugin) | Editor | `GL.UB.TickOutsideBudget`, `GL.UB.ClientTickGroup`, `GL.UB.ClientNeverTicks`, and the pack's settings | `GameplayLintCore`, `DataValidation`, `DeveloperSettings`, `AssetRegistry` |
+| `GameplayLint` (project, primary) | Runtime | Fixture gameplay types: a data asset, a DataTable row struct, payload structs, an instanced object, an agent actor, a stand-in budget client component, a plain ticking component | `Core`, `CoreUObject`, `Engine`, `GameplayTags` (public: the fixture headers are public) |
+| `GameplayLintBench` (project) | Editor | `UGameplayLintSeedCommandlet`: builds the corpus and its ground truth from a seed; applies mutations M1–M4. The automation tests of the core (`Private/Tests`) | `GameplayLint`, `GameplayLintCore`, `DataValidation`, `UnrealEd`, `AssetRegistry`, `GameplayTags`, `Json` |
 | `Tools\` | Python, batch | `run_scan.py` (interleaved, pinned runs and the batch manifest), `score.py` (recall and false positives vs ground truth), `core_mask.py`, `build.bat`, `package.bat`, `smoke_game.bat`, `validate.bat` | — |
+
+**The link rule (found in S1–S4):** every module that defines a rule, or calls a validator's functions, must list `DataValidation` itself. The core's public dependency gives such a module the include paths but not the import library: the first S1–S4 build compiled, then the bench module failed to link `UEditorValidatorBase::K2_ValidateLoadedAsset_Implementation` and three more symbols (`09`, S1–S4). Because `DataValidation` is a plugin module, each rule pack's `.uplugin` must also list the `DataValidation` plugin (`06` §5).
 
 **The dependency rules:**
 - packs → core → engine, never the reverse;
@@ -156,7 +158,7 @@ Dependents (all three): when an actor Blueprint changes, the Blueprints that der
 
 | Type | Base | Why |
 |---|---|---|
-| `UGLFixtureDataAsset` | `UPrimaryDataAsset` | Holds every structural variant: top-level tag, container, row handles (one `LintRequired`), curves (one `LintMonotonic`, one `LintRequired`), a nested payload, `TArray` and `TMap` of payloads, an instanced object, and an `FInstancedStruct` (the held-out kind) |
+| `UGLFixtureDataAsset` | `UPrimaryDataAsset` | Holds every structural variant: top-level tag, container, row handles (one `LintRequired`), curves (one `LintMonotonic`, one `LintRequired`), a nested payload, `TArray` and `TMap` of payloads, an instanced object, an `FInstancedStruct` payload, and a project-style two-field reference (`LootTable` + `LootRow`, the held-out kind) |
 | `FGLFixturePayload` | `USTRUCT` | A tag, a row handle and a curve, reused at every nesting level |
 | `FGLFixtureRow` | `FTableRowBase` | DataTable rows that themselves hold tags, handles and curves |
 | `UGLFixtureInstanced` | `UObject` (`EditInlineNew, DefaultToInstanced`) | The instanced sub-object variant |
@@ -345,7 +347,7 @@ F0's equivalence with the stock `-run=DataValidation` (same "Files Checked / Fai
 ## 12. Known limits (stated, not hidden)
 
 1. **Detection on a self-made corpus is an upper bound.** Mitigated by fixing kinds, variants, near-misses and held-out kinds before rule code (`01` §7.1, §9).
-2. **Not walked in v1:** `FInstancedStruct` payloads (held-out), Blueprint graph pin literals, values hidden in custom serialisation. These are expected misses.
+2. **Not recognised or not walked in v1:** a project's own reference types (a table and a row name in two plain fields: the corpus's held-out kind), Blueprint graph pin literals, values hidden in custom serialisation. These are expected misses. (`FInstancedStruct` payloads *are* walked: 5.8's property iterator unwraps them, `UnrealType.cpp:57–65`.)
 3. **Registry data is on-disk only.** Unsaved edits don't feed dependent gathering.
 4. **Load time dominates.** GameplayLint can't make the engine's full scan faster than its loads (`01b` #6).
 5. **The UpdateBudget rules depend on configuration.** Wrong class paths give wrong results; the settings page says so.

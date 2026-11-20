@@ -1,4 +1,4 @@
-// P10 GameplayLint - primary game module (runtime). It will hold the gameplay data types that the
+// P10 GameplayLint - primary game module (runtime). It holds the gameplay data types that the
 // seeded test corpus is made of (data assets, DataTable rows, components). It never depends on the
 // lint plugins: the rules inspect game data, the game does not know the rules exist.
 
@@ -10,6 +10,7 @@ public class GameplayLint : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine" });
+		// GameplayTags is public: GLFixtureData.h (a public header) declares FGameplayTag properties.
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "GameplayTags" });
 	}
 }

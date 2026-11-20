@@ -48,8 +48,112 @@ Four of the 13 shipped validator classes are absent because their plugins are no
 
 ---
 
-## Phases 5–8 (to be written)
+## Phase 5 · Steps S1–S4: fixtures, corpus, harness, rule base (2026-11-21)
 
-- S2: corpus determinism (E2). S3: the stock baseline (stock commandlet vs F0 equivalence; F0 detection per class; H2, H3, H5).
-- Functional, edge-case and stability tests (Phase 7).
+Three queue jobs. The first failed to link; the second ran everything, but its baseline was invalid; the third is the record.
+
+| # | Check | Command / job | Result |
+|---|---|---|---|
+| P5-1 | First S1–S4 build | job `20261121_030734_92a7d8`: build editor (then game, E2, stock scan) | ❌ Exit 6 after 17.4 s. Compiled, then **4 unresolved externals** in `UnrealEditor-GameplayLintBench.dll`: `UEditorValidatorBase::K2_ValidateLoadedAsset_Implementation`, `K2_CanValidateAsset_Implementation`, `K2_CanValidate_Implementation` (from the generated code of `UGLTestRule`) and `ValidateLoadedAsset` (from the contract test). Cause: the bench module subclasses a validator but listed only `GameplayLintCore`, whose public `DataValidation` dependency gives include paths, not the import library. Fix: `DataValidation` in the bench's dependencies (the link rule, `02` §3, `07`) |
+| P5-2 | Builds, E2, corpus, baseline, tests | job `20261121_032421_87e808` (the full S1–S4 chain, `03`) | Builds ✅ editor 14.3 s, game 14.8 s, **0 errors, 0 warnings**. E2 ✅ (below). Seeding 1,000 ✅. Tests ✅ 4/4. **Baseline ❌ invalid:** the stock run reported "Failure - 7 error(s), 7661 warning(s)", and the warnings named *permanent* tags as invalid, even in the shared tables. Cause: the seeder wrote `+GameplayTagList=` lines, and a loose `Config/Tags/*.ini` file is read without ini symbol commands (`ConfigCacheIni.cpp:2216–2219`), so the engine loaded none of the corpus's tags. The batch `2026-11-21_035120_baseline` is kept, marked INVALID in its summary |
+| P5-3 | Re-run after the tag-file fix | job `20261121_035657_9d0bde` (same chain) | ✅ Exit 0 in 197.6 s. Builds: editor 14.2 s (the bench module rebuilt), game 1.3 s (up to date), **0 errors, 0 warnings**. E2 ✅. Seeding 1,000 ✅ (manifest sha256 `11fdc0bea9a7fe60…`, as in P5-2: the fix changes the tag files, not the manifest). Baseline ✅: batch `2026-11-21_041526_baseline`, 9 runs, all ok, **0 permanent-tag warnings**. Tests ✅ 4/4 (`GameplayLint.Rule.Contract`, `.Walker.DataTableRows`, `.Walker.EveryVariant`, `.Walker.Metadata`) |
+
+**E2, corpus determinism (P5-2 and P5-3):** `seed.py determinism --assets 500` seeds with seed 2, then twice with seed 1, and compares the manifest hashes.
+
+| Seeding | P5-2 manifest sha256 | P5-3 manifest sha256 |
+|---|---|---|
+| seed 2, 500 assets | `e6bdcc7a60c61a3a…` | `e6bdcc7a60c61a3a…` |
+| seed 1, 500 assets | `38a3e124c0b4a5d0…` | `38a3e124c0b4a5d0…` |
+| seed 1 again | `38a3e124c0b4a5d0…` (identical) | `38a3e124c0b4a5d0…` (identical) |
+
+The tag-file fix doesn't touch the manifest, so the hashes may match across jobs. What E2 requires is within a job: the same seed gives the same hash, and a different seed gives a different one.
+
+### S3 baseline: the stock engine on the corpus
+
+Batch `2026-11-21_041526_baseline`: N = 1,000, seed 1. Command: `python -I Tools
+un_scan.py --configs S,F0 --all-assets --label baseline` (pinned to `0xFFFF`; one priming run, then 4 interleaved runs of each).
+
+| Config | Runs | Process wall (s) | Commandlet (s) | Validation phase (s) | Checked | Valid | Valid with warnings | Invalid |
+|---|---|---|---|---|---|---|---|---|
+| S (stock `-run=DataValidation`) | 4 | 9.33 [9.20–10.05] | 1.21 [1.16–1.25] | n/a | 1,011 | 976 | 28 | 7 |
+| F0 (our commandlet, no rules) | 4 | 9.29 [9.10–9.34] | 1.16 [1.14–1.17] | 0.97 [0.95–0.98] | 1,011 | 976 | 28 | 7 |
+
+- **What was checked:** 1,011 = the 1,000 corpus assets + 10 shared assets (3 target tables, the curve table, 6 parent Blueprints) + the `VerseClass` default object (F-3).
+- **S = F0 ✅ (`02` §9):** the per-asset result lines are identical in all 9 runs, priming included. With no rules, the child commandlet changes neither what the engine validates nor what it concludes, and it adds no measurable time.
+- **A corrected summary column:** the first version of the summary showed F0 "Warnings 35" against S "28". The F0 number was the engine's own total, which also counts the 7 invalid assets that have warnings. Every row now counts the same result lines (`run_scan.py`, S1–S4).
+- **The run time is mostly editor start-up** (`08` §3): about 9.3 s per process, of which the validation phase is under 1 s. The `03` estimate of 0.5–2.5 minutes per run was far too high. Phase 8 fits the owner's budget with room to spare; N = 5,000 is not measured yet.
+
+**Stock detection** (`score.py`, F0; S has identical result lines):
+
+| Defect class (the rule meant to find it) | Seeded | Flagged by the stock run (asset level) | How |
+|---|---|---|---|
+| Unknown tag (`GL.Data.UnknownTag`) | 28 | **28 (100 %)** | The tag system's load warning, "Invalid GameplayTag Fixture.Missing.0684 found in property /Script/GameplayLint.GLFixturePayload:Tag". A **warning**: the asset still "contains valid data" |
+| Dangling row handle (`GL.Data.DanglingRow`) | 64 | 0 | — |
+| Bad curve (`GL.Data.Curve`) | 33 | 0 | — |
+| Per-frame tick outside the budget (`GL.UB.TickOutsideBudget`) | 28 | 0 | — |
+| Client in the wrong tick group (`GL.UB.ClientTickGroup`) | 21 | 0 | — |
+| Client that never ticks (`GL.UB.ClientNeverTicks`) | 26 | 0 | — |
+| **All seeded defects** | **200** | **28 (14 %)** | |
+
+- **Controls:** 0 of 672 clean assets and 0 of 130 near-misses flagged.
+- **Held out:** 0 of 1 found.
+- **Masked:** 7 of 7 invalid, through the fixture row's own `IsDataValid` ("Value must not be negative"), as designed. Their second defect is an unknown tag.
+- **Rule-level detection:** 0 / 200, as expected with no rules.
+
+**What the baseline answers (before any rule code):**
+- **H2 ✅ supported.** Row handles and curves inside project structs: 0 of 97 flagged. Tags are seen only because the tag system itself warns on load.
+- **H3, fresh-load half ✅.** A fresh-load commandlet run sees every unknown tag, in every structural variant: instanced objects and structs, map values, Blueprint defaults, DataTable rows. **The on-save half** (validating already-loaded assets) needs the script entry point and is **not measured yet**; it moves to Phase 7.
+- **H4 ✅ (none expected).** 0 of 75 `GL.UB.*` defects.
+- **H5, partly.**
+  - The 28 tag findings are warnings, so on their own they don't fail the run. The run's exit code was 1 only because the 7 masked assets have errors (`01b` #7).
+  - The messages name the *struct property* (`GLFixturePayload:Tag`), not the field (`Map[K1].Tag`), and have no stable ID: mapping them to defect classes needs text matching.
+  - The exit code of a corpus with warnings only was not run; `01b` #7 implies it is 0 **[inferred]**.
+- **The stock side of SC3:** per-class stock recall is in the table above. At most 172 of the 200 defects (86 %) can count as "found by F1 and not flagged by F0": every class except unknown tags.
+
+### Audit trail for S1–S4
+
+**`code-review` (medium effort) on the S1–S4 diff:** 7 findings, all fixed before the S1–S4 job was queued (the job built the fixed code).
+
+| # | Finding | Fix |
+|---|---|---|
+| R1 | `FParse::Value` stops at `,`: `-GameplayLintRules=GL.Data,GL.UB` kept only `GL.Data`, and `-Paths=` only its first folder | `bShouldStopOnSeparator = false` for both (`Parse.cpp:298`) |
+| R2 | An unreadable `-Changes=` file validated an empty change list and exited 0 | `bChangesUnreadable`: `ProcessValidationResults` returns false, so the run fails |
+| R3 | The held-out `FInstancedStruct` entries are in fact walked (`UnrealType.cpp:57–65`), so the "expected misses" would be detected and the held-out count would be wrong | Instanced-struct payloads became a regular variant (1 % of data assets); new held-out kind: `LootTable` + `LootRow` (`01` §7.1, `01b` #11, `02` §2) |
+| R4 | `FFileHelper`'s default `AutoDetect` encoding writes UTF-16 when a string holds a non-ANSI character; the Python readers expect UTF-8 | `ForceUTF8WithoutBOM` for the manifest, the change list, the tag files and the report |
+| R5 | `-Paths` was silently ignored when `-Changes` was given | Warn and reset `Paths`; `run_scan.py` no longer passes `-Paths` to the I configurations |
+| R6 | An unknown `-GameplayLintDependents=` value fell back to the configured mode without a word | Warning naming the value; the report records `dependents_mode` |
+| R7 | Running `-Mutate` twice applied M1–M4 again (M4 adds 100 twice; M1 removes nothing), so the change list no longer matched the ground truth | `Mutate` refuses a corpus whose `DT_TargetsA` lacks row `T30` |
+
+**`simplify`:** the skill asks for four parallel review agents. The brief forbids sub-agents, so I reviewed the same four angles (reuse, simplification, efficiency, altitude) myself on the same diff.
+
+| Angle | Finding | Decision |
+|---|---|---|
+| Reuse | `-GameplayLintDependents=` parsing and the report's mode name were hand-written string switches over the enum | **Applied:** `StaticEnum<EGameplayLintDependents>()->GetValueByNameString` / `GetNameStringByValue` (the enum is a `UENUM`) |
+| Simplification | The walker had two near-identical property-iterator loops: one in `VisitObject` (an asset and its sub-objects), one in `ForEachValueIn` (a row or a template) | **Applied:** one `Walk` function that both call; it collects instanced sub-objects only when the caller asks |
+| Simplification | The seeder computed the field name of a defect cell with the same nested ternary in three places | **Applied:** `FieldFor(Kind, RowField)` |
+| Simplification | `ObjectPath(Asset)` was a one-line wrapper of `GetPathName()` | **Applied:** inlined |
+| Reuse | `MakeTag` exists in the seeder and in the tests | **Skipped:** different modules (a commandlet and a test file), 3 lines each; a shared public helper would add an export only for them |
+| Reuse | `sha256()` exists in `seed.py` and `run_scan.py` | **Skipped:** the scripts run with `python -I`, which leaves the script folder off `sys.path`, so a shared module would need path code longer than the 3-line function |
+| Simplification | `ResultName` is a switch over `EDataValidationResult` | **Skipped:** the report format depends on these three exact strings; a switch states them, a reflection lookup would hide them |
+| Efficiency | `FText::FromName(RuleId)` runs for each asset a rule checks | **Skipped:** one small allocation per checked asset, against an asset load measured in milliseconds; the per-rule timing (`check_times_ms`) will show it if it matters |
+| Altitude | No finding: the fixes sit where the causes are (parsing in the settings and the commandlet, the corpus design in the seeder) | — |
+
+**Changes after the review passes** (self-reviewed for correctness, reuse, simplification, efficiency and altitude, because they came after `code-review` and `simplify` ran):
+- The seeder's tag line lost its `+`. One character, with the engine citation in the comment.
+- `run_scan.py`: a permanent-tag check that marks a run not ok. This is the altitude fix: it guards the measurement itself, so a broken dictionary can't pass as a baseline in any configuration.
+- `run_scan.py`: every summary row now counts the same per-asset result lines. Simplification: one counting path instead of two definitions.
+
+**Other findings in S1–S4:**
+- **The tag files loaded no tags** (P5-2): found by reading the first baseline's warnings, not by a review. Neither the code review nor I had questioned the `+` prefix, because it is right in every `Default*.ini`. Root cause in the engine: loose files skip ini symbol commands (`ConfigCacheIni.cpp:2216–2219`, `2076–2096`). The fix was one character in the seeder. Prevention: `run_scan.py` marks a run not ok if any permanent corpus tag is reported invalid, so a broken dictionary can no longer produce a "baseline".
+- **Link failure** (queue job `20261121_030734_92a7d8`, below): the root cause is in the build rules, not the code. Rule packs inherit the fix as the documented link rule (`02` §3, `07`).
+- **Citation check** (a script opens every engine `File:line` that `06` §7–23 cites and looks for the named symbol within ±3 lines): 48 citations, 1 wrong. `DataValidationChangelist.h:62–95` / `:86–92`, carried from Phase 2, don't exist in the 5.8.4 header (52 lines). Corrected to `:17–50` / `:42–47` in `01b`, the Phase 2 notes and `06`. Eight other misses were the check's own fault (a range that starts before the symbol, or a flag passed under another name), confirmed by reading each line.
+- **`TEXT("Tools\seed.py")`** in the seeder's messages: `\s` is not an escape (MSVC C4129, which would break the 0-warning rule). Caught by reading before the build; now `\\`.
+- **Doc tooling:** a shell here-document turned `\r` in a `05` table into a carriage return. Fixed by script, and every changed file was scanned for control characters (clean).
+
+---
+
+## Steps S5–S8 and Phases 7–8 (to be written)
+
+- S5–S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
+- Functional, edge-case and stability tests (Phase 7), including the on-save half of H3.
 - The full benchmark protocol and the SC1–SC7, E1–E2 results (Phase 8).

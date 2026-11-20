@@ -26,3 +26,10 @@ Build/
 Benchmarks/Raw/*
 !Benchmarks/Raw/*_manifest.json
 Benchmarks/*_console.txt
+
+# The seeded test corpus is regenerated from its seed by Tools/seed.py and never committed (01 section 7.1).
+GameplayLint/Content/GLSeed/
+GameplayLint/Config/Tags/GLSeed*.ini
+
+# Work-in-progress drafts (brief section 2 rule 11): parked here, never committed.
+_wip/

@@ -4,11 +4,11 @@
 
 **Domain:** Editor tools & automation · developer productivity · **Difficulty:** ★★★☆☆ · **Engine:** UE 5.8.4
 
-> **Status: in progress. There are no results yet.** Phases 1–4 are done: the foundation builds with 0 errors and 0 warnings and a packaged smoke run passes. No rule code exists yet. The ten portfolio projects are developed in parallel, and every Unreal Engine build and benchmark runs one at a time on the same machine, so measurements stay clean. Sections marked *(pending)* are filled in only from real measurements, in the phase named. The success criteria are **targets fixed before any rule code exists, not results**.
+> **Status: in progress. There are no results yet.** Phases 1–4 are done, and Phase 5 steps S1–S4 (fixtures, the seeded corpus, the measuring harness, the rule base) are built and tested. The stock engine's baseline was measured before any rule exists: on a seeded 1,000-asset corpus it flags 28 of 200 defects, all of them unknown gameplay tags, as warnings ([09](Explanation/09_Testing_And_Benchmarks.md)). The rules themselves come next. The ten portfolio projects are developed in parallel, and every Unreal Engine build and benchmark runs one at a time on the same machine, so measurements stay clean. Sections marked *(pending)* are filled in only from real measurements, in the phase named. The success criteria are **targets fixed before any rule code exists, not results**.
 
 | Phase | 1 Problem | 2 Research | 3 Architecture | 4 Foundation | 5 Implementation | 6 Explanation | 7 Testing | 8 Profiling | 9 Review | 10 Portfolio |
 |---|---|---|---|---|---|---|---|---|---|---|
-| State | ✓ | ✓ | ✓ final | ✓ | next (S1 of 9) | ongoing | — | — | — | — |
+| State | ✓ | ✓ | ✓ final | ✓ | S1–S4 of 10 ✓, next S5 | ongoing | — | — | — | — |
 
 ---
 
@@ -58,7 +58,7 @@ Final (v1.0): [Explanation/02_System_Architecture.md](Explanation/02_System_Arch
 
 ## Benchmark results
 
-*(pending, Phase 8)*. Detection rate and false-positive rate per rule, defect kind and structural variant; full-scan and incremental validation times at N = 1,000 / 4,000 / 10,000 assets. Raw data in [Benchmarks/](Benchmarks/README.md). The pass/fail criteria were fixed in advance: [01_Problem_Analysis.md §7.4](Explanation/01_Problem_Analysis.md).
+*(pending, Phase 8)*. Detection rate and false-positive rate per rule, defect kind and structural variant; full-scan and incremental validation times at N = 500 / 1,000 / 5,000 assets (the owner's cap: 5,000 assets, about 1.5 hours of queue time; the trend is reported, not extrapolated). Raw data in [Benchmarks/](Benchmarks/README.md). The pass/fail criteria were fixed in advance: [01_Problem_Analysis.md §7.4](Explanation/01_Problem_Analysis.md).
 
 ## Recorded demonstration
 
@@ -81,7 +81,7 @@ The UE project is in [GameplayLint/](GameplayLint/) (UE 5.8.4, C++):
 | [01b_Research_Findings](Explanation/01b_Research_Findings.md) | Phase 2: verified engine behaviour (UE 5.8.4) and what it changed in the design |
 | [02_System_Architecture](Explanation/02_System_Architecture.md) | Final v1.0: modules, classes, rules, flows, defaults, safety rules, growth, limits, rejected alternatives |
 | [03_Implementation_Roadmap](Explanation/03_Implementation_Roadmap.md) | The small, ordered build steps; the stock baseline is captured before any rule code |
-| [04](Explanation/04_CPP_Fundamentals.md) · [05](Explanation/05_Line_By_Line_Code_Explanation.md) · [06](Explanation/06_Unreal_APIs_And_Macros.md) · [07](Explanation/07_Common_Mistakes.md) | C++ fundamentals, line-by-line code, APIs and macros, common mistakes. Written step by step with the code (current to Phase 4) |
+| [04](Explanation/04_CPP_Fundamentals.md) · [05](Explanation/05_Line_By_Line_Code_Explanation.md) · [06](Explanation/06_Unreal_APIs_And_Macros.md) · [07](Explanation/07_Common_Mistakes.md) | C++ fundamentals, line-by-line code, APIs and macros, common mistakes. Written step by step with the code (current to S4) |
 | [09](Explanation/09_Testing_And_Benchmarks.md) | Every check and benchmark batch so far |
 | [08](Explanation/08_Debugging_And_Profiling.md) · [10](Explanation/10_Interview_Questions.md) · [11](Explanation/11_Optimization_Decisions.md) · [12](Explanation/12_Future_Scalability.md) | Debugging and profiling, interview questions, optimisation decisions, future scalability. Filled in during Phases 5–10 |
 | [Phase2_Raw_Notes/](Explanation/Phase2_Raw_Notes/README.md) | The research audit trail |

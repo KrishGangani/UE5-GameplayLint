@@ -50,4 +50,5 @@ Runs:              per combination: smallest multiple of the config count that i
 
 | Batch | Configs | N | Runs | Purpose | Summary |
 |---|---|---|---|---|---|
-| *(none yet: the first batch is the S3 baseline)* | | | | | |
+| `2026-11-21_035120_baseline` | S, F0 | 1,000 | 4 + 4, + priming | S3 baseline, first attempt | **Invalid:** the corpus's tag files loaded no tags (`09` P5-2); the summary is kept and marked |
+| `2026-11-21_041526_baseline` | S, F0 | 1,000 | 4 + 4, + priming | S3 baseline: stock vs F0 equivalence, stock detection per defect class | [summary](Summaries/2026-11-21_041526_baseline_summary.md) · [score](Summaries/2026-11-21_041526_baseline_score.md) |

@@ -5,6 +5,10 @@
 | Part | Step | Files |
 |---|---|---|
 | A | Phase 4, F1–F3 (foundation) | `.uproject`, two `Target.cs`, five `Build.cs`, five module `.cpp`, three `.uplugin`, three config `.ini`, `Tools\*.bat`, `Tools\core_mask.py` |
+| B | S1 (fixture data types) | `GLFixtureData.h/.cpp`, `GLFixtureActors.h/.cpp`, game `Build.cs` |
+| C | S2 (seeded corpus) | `GameplayLintSeedCommandlet.h/.cpp`, bench `Build.cs`, `Tools\seed.py` |
+| D | S3 (harness) | `GameplayLintTypes.h`, `GameplayLintSettings.h/.cpp`, `GameplayLintReportSubsystem.h/.cpp`, `GameplayLintCommandlet.h/.cpp`, core `Build.cs`, `Tools\run_scan.py`, `Tools\score.py` |
+| E | S4 (rule base, walker, tests) | `GameplayLintRule.h/.cpp`, `GameplayLintWalker.h/.cpp`, `Tests\GLTestRule.h`, `Tests\GameplayLintCoreTests.cpp`, `Tools\run_tests.bat` |
 
 ---
 
@@ -244,3 +248,204 @@ All `.bat` files start with `@echo off` (don't print each command), `setlocal` (
 | Why pin at all | UE5-UpdateBudget measured runs at two stable levels 1.6× apart when Windows scheduled the game thread on an E-core. A scan's timing must not depend on where Windows puts it |
 | Why not `cmd /c start /affinity` | It returns exit code 0 whatever the program returned (found by another portfolio project), so failures would go unnoticed. The runner (already pinned) starts the editor with `subprocess.Popen`, waits with a timeout and kills the tree in a `finally` block |
 | `if __name__ == "__main__"` | Run as a script, it prints the mask (`FFFF`) so it can be recorded and checked by hand |
+
+---
+
+## Part B · Step S1: the fixture data types (game module)
+
+**State after S1 (2026-11-21):** the game module holds the gameplay data the corpus is made of. The types stand in for a real game's data: the rules never include them and find their values by reflection, like any project's data. Compiled with 0 errors and 0 warnings in both targets (`09`, S1–S4).
+
+### B1. `Source\GameplayLint\Public\GLFixtureData.h`
+
+| Line(s) | What, why, and what breaks if it changes |
+|---|---|
+| Includes: `Curves/CurveFloat.h`, `Engine/CurveTable.h`, `Engine/DataAsset.h`, `Engine/DataTable.h`, `GameplayTagContainer.h`, `Misc/DataValidation.h`, `StructUtils/InstancedStruct.h` | One include per type used by value: `FRuntimeFloatCurve`, `FCurveTableRowHandle`, `UPrimaryDataAsset`, `FDataTableRowHandle`/`FTableRowBase`, `FGameplayTag`/`FGameplayTagContainer`, `FDataValidationContext` (for the row's `IsDataValid`), `FInstancedStruct` (in CoreUObject since 5.5). A by-value member needs the full type; a forward declaration would not compile |
+| `#include "GLFixtureData.generated.h"` | UHT's generated code for the reflected types below. Must be the last include (UHT checks) |
+| *No* `#define UE_API` | Other modules (the bench module, the tests) use `StaticStruct()`/`StaticClass()` and the data members, never member functions. In 5.8 UHT exports a struct's constructor function itself (the generated `Z_Construct_UScriptStruct_…` carries the module's API macro, e.g. `GameplayTagContainer.generated.h:23` for FGameplayTag), and `UCLASS(MinimalAPI)` exports a class's `StaticClass`. Nothing else needs exporting, so the alias would be dead code |
+| `USTRUCT(BlueprintType) struct FGLFixturePayload` | A reflected struct: the walker finds its fields through reflection. `BlueprintType` lets designers use it in Blueprints, which real gameplay data allows. **Fields:** `FGameplayTag Tag`, `FDataTableRowHandle Row`, `FRuntimeFloatCurve Curve`: one of each reference kind the data rules check, so one struct can be placed at every nesting level |
+| `UPROPERTY(EditAnywhere, Category = "Fixture")` | Reflected (so saved, walked and editable) and visible in the details panel. `Category` groups it. Without `UPROPERTY` a field is invisible to reflection: neither saved nor checked |
+| `struct FGLFixtureRow : public FTableRowBase` | A DataTable row type (tables require `FTableRowBase`). `int32 Value` (the M4 control mutation edits only this), `Tag`, `Link` (a row handle *inside* a row: tables point at other tables), `Curve` |
+| `#if WITH_EDITOR virtual EDataValidationResult IsDataValid(FDataValidationContext&) const override` | The **class-level check a row owner writes**: a negative `Value` is an error. `UDataTable::IsDataValid` calls it for each row (`DataTable.cpp:418–462`). The engine runs class-level checks before any validator and skips validators when it fails (`EditorValidatorSubsystem.cpp:657–663`). The corpus uses this to build its **masking set**: tables with a class-level error *and* a rule defect. `WITH_EDITOR` because the base declaration is editor-only (`DataTable.h:60–68`); without the guard the game target fails to compile. `NSLOCTEXT` gives the message a localisation key without a file-wide namespace |
+| `UCLASS(MinimalAPI, EditInlineNew, DefaultToInstanced, CollapseCategories) class UGLFixtureInstanced : public UObject` | An **instanced sub-object**: data that lives in its own UObject inside the owning asset's package. `EditInlineNew` lets the details panel create one in place; `DefaultToInstanced` makes every property of this type an instanced reference (the owner gets its own copy, saved in its package); `CollapseCategories` keeps the inline UI flat. The walker follows exactly these references (`CPF_InstancedReference`) and no others |
+| `UCLASS(MinimalAPI) class UGLFixtureDataAsset : public UPrimaryDataAsset` | The corpus's data asset, with one field per **structural variant** of `01` §7.1: top level (`Tag`, `Row`, `Curve`, …), `Tags` (container), `Nested`, `List` (`TArray`), `Map` (`TMap<FName, …>`), `Instanced`, `Extra` (`FInstancedStruct`), and the two-field `LootTable`/`LootRow`. `UPrimaryDataAsset` is the usual base for gameplay data assets (Asset Manager support) |
+| `meta = (LintRequired)` on `RequiredRow` and `RequiredCurve` | **Free-form UPROPERTY metadata** a programmer writes to say "this must be set". UHT accepted the keys (0 warnings, S1), which settles the `[inferred]` of `01b` §3. Metadata exists only in editor builds (`WITH_METADATA`), which is where the rules run. *Alternative:* a settings list of property paths, which would separate the meaning from the declaration |
+| `meta = (LintMonotonic = "Increasing")` on `CooldownByLevel` | The curve's contract: it must never fall as the level rises. The value names the direction |
+| `UPROPERTY(EditAnywhere, Instanced, …) TObjectPtr<UGLFixtureInstanced> Instanced` | `Instanced` (with the class's `DefaultToInstanced`) marks the reference `CPF_InstancedReference`. `TObjectPtr` is UE5's UObject pointer wrapper (GC-visible as a UPROPERTY) |
+| `meta = (BaseStruct = "/Script/GameplayLint.GLFixturePayload") FInstancedStruct Extra` | An instanced struct that may only hold an `FGLFixturePayload` (the editor's type picker uses `BaseStruct`). **5.8's property iterator walks into it** (`UnrealType.cpp:57–65`), which corrected the corpus design in S4 (`01` §7.1) |
+| `TSoftObjectPtr<UDataTable> LootTable; FName LootRow;` | A **project-specific reference type**: a table and a row name in two plain fields. Nothing tells a generic rule they belong together, so a missing row here is the **held-out kind** (an expected miss). `TSoftObjectPtr` is a by-path reference that does not load the table |
+
+### B2. `Source\GameplayLint\Public\GLFixtureActors.h` and `Private\GLFixtureActors.cpp`
+
+| Class / line | What, why |
+|---|---|
+| `UCLASS(MinimalAPI, Blueprintable) class AGLFixtureAgent : public AActor` | The budget scope's base class (the project config names it, S7). `Blueprintable` so the corpus can derive Blueprints. **Constructor:** `PrimaryActorTick.bCanEverTick = false` (already the actor default, `Actor.cpp:278`, restated because "the agent never ticks itself" is the point). `FGLFixturePayload Payload` lets a Blueprint subclass hold gameplay data in its class default object: the "Blueprint default" variant |
+| `AGLFixtureTickingAgent : AGLFixtureAgent` | A native parent that ticks: `bCanEverTick = true`, `bStartWithTickEnabled = true`. Every Blueprint made from it inherits a per-frame actor tick (the Kismet compiler starts from the parent's flag, `KismetCompiler.cpp:5525–5527`): the "inherited actor tick" defect |
+| `UCLASS(MinimalAPI, Blueprintable, ClassGroup = (GameplayLint), meta = (BlueprintSpawnableComponent)) UGLFixtureBudgetClient : UActorComponent` | **Stand-in for UE5-UpdateBudget's `UBudgetedUpdateComponent`**, with the same tick contract: `bCanEverTick = true` (components default to false) and `TickGroup = TG_PrePhysics` (components default to `TG_DuringPhysics`, `ActorComponent.cpp:548–550`). `BlueprintSpawnableComponent` makes it addable in a Blueprint's component list; `ClassGroup` is the "Add Component" category. *Why not link the real one:* projects never reference each other's folders (`02` §3) |
+| `UGLFixtureTicker : UActorComponent` | A plain component that ticks every frame in the default group: the per-frame work the UpdateBudget rule looks for. Only `bCanEverTick` needs setting; start-enabled and interval 0 are defaults |
+| `GLFixtureActors.cpp`: `#include UE_INLINE_GENERATED_CPP_BY_NAME(GLFixtureActors)` | Compiles UHT's generated code into this file instead of a separate one (fewer translation units) |
+| `GLFixtureData.cpp` | No code of its own: it exists to host `UE_INLINE_GENERATED_CPP_BY_NAME(GLFixtureData)` for the header's types |
+
+### B3. `GameplayLint.Build.cs` (changed in S1)
+
+`"GameplayTags"` joined the **public** dependencies: `GLFixtureData.h`, a public header, declares `FGameplayTag` members, so any module including it needs the GameplayTags include path (`06` §2).
+
+---
+
+## Part C · Step S2: the seeded corpus (`GameplayLintBench`) and `Tools\seed.py`
+
+**State after S2:** a commandlet builds the corpus of `01` §7.1 from a seed and writes its ground truth; the same commandlet applies M1–M4. Everything runs through the UE job queue via `Tools\seed.py`.
+
+### C1. `Private\GameplayLintSeedCommandlet.h`
+
+| Line | Why |
+|---|---|
+| `UCLASS() class UGameplayLintSeedCommandlet : public UCommandlet` | A commandlet: `-run=GameplayLintSeed` finds `GameplayLintSeedCommandlet` (`06` §6). In `Private`, because nothing includes it; UHT accepts reflected classes there |
+| `virtual int32 Main(const FString& Params) override` | The entry point the engine calls instead of the editor loop; its return value becomes the exit code |
+
+### C2. `Private\GameplayLintSeedCommandlet.cpp`
+
+| Part | What it does, and why |
+|---|---|
+| `namespace GameplayLintSeed { … }` | Everything the corpus needs, without polluting the global namespace (the module is a unity build: other files share the translation unit) |
+| Layout constants (`RootPath`, `SharedPath`, `AssetsPath`, `NumTargets = 3`, `TargetRows = 32`, `TableRows = 20`, `CurveRows = 16`, `PermanentTags = 16`, `RemovableTags = 8`, `CleanParents = 4`, `TickingParents = 2`, `RemovedRows`) | Named sizes with a comment each, instead of numbers in the code. One root folder so a scan, a `-Paths` filter or a delete can address the whole corpus |
+| `struct FEntry` | One ground-truth line: asset object path, type, category (`defect`, `nearmiss`, `clean`, `heldout`, `masked`), expected rule, kind, variant and the property path |
+| `enum class EDataKind` + `KindName` + `RuleFor` + `FieldFor` | The nine data defect kinds; the first four (`TagSingle`, `RowMissing`, `RowNullTable`, `CurveNonFinite`) can sit at any payload position, the other five only at top level. `RuleFor` maps a kind to the rule that must report it; `FieldFor` names the field it lives in (shared by three callers since the simplify pass) |
+| `SaveAsset(UObject*)` | `FPackageName::LongPackageNameToFilename(…, GetAssetPackageExtension())` turns `/Game/GLSeed/Assets/DA_0001` into the `.uasset` path; `FSavePackageArgs{ TopLevelFlags = RF_Public \| RF_Standalone, SaveFlags = SAVE_NoError }`; `UPackage::SavePackage` (`Package.h:1204`). `RF_Public` makes the asset referenceable from other packages, `RF_Standalone` keeps it from being garbage-collected while unreferenced |
+| `MakeTag(Name)` | `FGameplayTag::FromExportString(Name, PPF_SerializedAsImportText)`: with that flag an unknown name is **kept** "to avoid data loss" (`GameplayTagsManager.cpp:1177–1178`), as a text import keeps it. At seed time no corpus tag is in the dictionary yet (this run writes their `.ini` files), so every tag is made this way; in the validation run the permanent and removable tags exist and `Fixture.Missing.*` do not |
+| `FCurveKey` + `MakeCurve({…})` | A two-float aggregate and an `std::initializer_list`, so a curve reads as `MakeCurve({ { 0.f, 1.f }, { 1.f, 2.f } })`. *Renamed from `FKey`* during review: Input Core already has a global `FKey` |
+| `NewBlueprint` | `CreatePackage` + `FKismetEditorUtilities::CreateBlueprint(Parent, Package, Name, BPTYPE_Normal, CallingContext)` (`KismetEditorUtilities.h:110`) + `FAssetRegistryModule::AssetCreated` (tells this process's registry the asset exists) |
+| `AddComponent` | `SimpleConstructionScript->CreateNode(Class, Name)` + `AddNode` (`SimpleConstructionScript.h:92, 170`) and returns `Node->ComponentTemplate`: the object whose properties become the component's defaults. That is where a designer would change "Tick Group" or "Start with Tick Enabled" |
+| `class FSeeder` | One instance per run. **Determinism:** every random choice comes from one `FRandomStream(Seed)` and the assets are created in index order, so the same seed gives the same corpus and the same manifest (E2). `FRandomStream` is Unreal's seeded generator; `FMath::Rand` would not be repeatable |
+| `ValidTag`, `TargetRow`, `ValidRow`, `ValidCurve`, `FillPayload` | Valid values. 10 % of tags are "removable" ones, so M2 has victims; rows point at `T00`–`T31` of one of three shared tables, so M1 has victims |
+| `ApplyPayloadDefect` | Turns one payload value into a defect: `Fixture.Missing.NNNN`; a row `T99`; a null table with a row name; a NaN or infinite key (`std::numeric_limits<float>::quiet_NaN()` / `infinity()`). `checkNoEntry()` for the top-level kinds, which only `CreateDataAsset` applies |
+| `PickCategory` | 20 % defect, 15 % near-miss, 65 % clean (`01` §7.1) |
+| `CreateShared` | Three target tables (`T00`–`T31`, every row valid), the curve table (`C00`–`C15`), four clean parent Blueprints (agent + client) and two ticking parents (agent + client + ticker: defective themselves). They are created first because the corpus references them |
+| `CreateDataAsset` | A clean asset first (every reference valid, every annotated contract met), then 1 % instanced-struct defects, 1 % held-out (`LootRow = "T99"`), and otherwise a category: a defect cell chosen uniformly among 25 (four payload kinds × five positions + five top-level kinds), or one of five near-misses (a parent tag that exists, an empty container, an unset optional row, a flat monotonic curve, an empty optional curve) |
+| `CreateDataTable` | 20 rows. 5 % are **masked**: row `R00` gets `Value = -1` (the class-level error) and another row gets an unknown tag. Defective tables have one payload defect in one row; near-misses leave links empty and curves flat |
+| `CreateActorBlueprint` | Chooses the shape first, because it decides the parent: nine defect cells (five UpdateBudget kinds, four data kinds in the class default object) or four near-misses (a ticker with a 0.2 s interval, a ticker that starts disabled, an out-of-scope actor that ticks, allow-listed skeletal mesh and movement components). Half the clean ones derive from a clean shared parent (M3's victims). The class default object's payload is set **after** `CompileBlueprint`, on the class the compile produced |
+| `CreateComponentBlueprint` | A Blueprint subclass of the client (clean, or a defect: tick group `TG_PostPhysics`, or start disabled), or a near-miss: a Blueprint of the plain ticker, which ticks every frame but is not a client and not in an actor |
+| `WriteTagFiles` | `Config/Tags/GLSeedPermanent.ini` and `GLSeedRemovable.ini`: section `[/Script/GameplayTags.GameplayTagsList]` with one plain `GameplayTagList=(Tag="…",DevComment="")` line per tag, the format the manager loads from that folder (`GameplayTagsManager.cpp:582, 682`). **No `+` prefix:** a loose file is read without ini symbol commands, so `+GameplayTagList` would be a different key and the list would load empty; a repeated plain key appends (`Engine/Source/Runtime/Core/Private/Misc/ConfigCacheIni.cpp:2051, 2076–2096, 2216–2219`). The first S1–S4 baseline ran with `+` lines and every corpus tag was unknown to the engine (`09` S1–S4, `07`). Git-ignored: regenerated with the corpus |
+| `WriteManifest` | The ground truth as JSON through `TJsonWriter` with a pretty-print policy. Saved as **UTF-8 without BOM** (the default would write UTF-16 as soon as a string held a non-ANSI character; review finding) |
+| `Run` | The mix per 100 assets (40 / 10 / 35 / 15), shared assets first, then each type in index order |
+| `Mutate` | **Refuses an already-mutated corpus** (row `T30` must still exist in `DT_TargetsA`; review finding). Then M1 (`RemoveRow` on two tables), M2 (deletes `GLSeedRemovable.ini`), M3 (adds a ticker to `BP_Parent_0` and recompiles), M4 (`Value += 100` on `DT_TargetsC`, row `T05`). Writes the pseudo-changelist (`M <package>`, `X <file>`) |
+| `Main` | `SearchAllAssets(true)` first (the registry must know what exists), then `-Mutate -Changes=` or `-Seed= -Assets= -Manifest=` (`FParse::Param`/`FParse::Value`). Refuses to seed into a non-empty `/Game/GLSeed` |
+| Constructor: `LogToConsole = true` | Log lines reach the console, so the queue's watchdog sees progress |
+
+### C3. `GameplayLintBench.Build.cs` (changed in S2–S4)
+
+Private dependencies, each with its reason in the file: `AssetRegistry`, `DataValidation` (**added after the first S1–S4 build failed to link**: the tests' rule derives from `UEditorValidatorBase`, and the core's public dependency gives the include path but not the import library; `02` §3), `GameplayTags`, `Json`, `UnrealEd` (`FKismetEditorUtilities`), `GameplayLint` (the fixtures), `GameplayLintCore` (the framework under test).
+
+### C4. `Tools\seed.py`
+
+| Part | Why |
+|---|---|
+| `seed` | Deletes `Content/GLSeed`, the generated tag files and the old manifest (the commandlet refuses a non-empty folder), runs the commandlet, prints the manifest's SHA-256 |
+| `determinism` | **E2:** seed 2 once, seed 1 twice; the two seed-1 manifests must be byte-identical and differ from seed 2. Seed 2 runs first so the corpus left behind is the seed-1 corpus. Exit 3 if the check fails |
+| `mutate` | Runs `-Mutate` and prints `changes.txt` |
+| `run_editor` | Starts `UnrealEditor-Cmd.exe` itself with `subprocess.Popen` (never `cmd /c start`), output to our stdout (the queue's watchdog sees it), a timeout, and a kill of the process tree in `finally` |
+
+---
+
+## Part D · Step S3: the harness (core types, settings, report, commandlet) and `Tools\run_scan.py`, `score.py`
+
+### D1. `Public\GameplayLintTypes.h`
+
+| Type | Why |
+|---|---|
+| `UENUM() enum class EGameplayLintSeverity : uint8 { Warning, Error }` | A finding's level. `UENUM` so it can be a UPROPERTY and be named by reflection |
+| `UENUM() enum class EGameplayLintDependents : uint8 { Off, Coarse, Precise }` | How incremental runs gather dependents (`02` §6.2). Its reflection data is also used to parse and print it (simplify pass) |
+| `USTRUCT() struct FGameplayLintFinding` | Rule ID (`FName`, cheap to compare and hash), asset (`FSoftObjectPath`: a path, so a report survives unloaded assets), severity, `Where`, `Message`. `UPROPERTY()` without specifiers: reflected for the report, not editable |
+
+### D2. `Public\GameplayLintSettings.h`, `Private\GameplayLintSettings.cpp`
+
+| Part | Why |
+|---|---|
+| `UCLASS(MinimalAPI, config = Editor, defaultconfig, meta = (DisplayName = "Gameplay Lint")) : UDeveloperSettings` | A Project Settings page. `config = Editor` reads `[/Script/GameplayLintCore.GameplayLintSettings]` from the editor config; `defaultconfig` saves to the project's `DefaultEditor.ini`, which is committed. `UDeveloperSettings` registers the page automatically |
+| `bEnabled`, `DisabledRules`, `Dependents` (`UPROPERTY(EditAnywhere, config)`) | The saved choices: master switch, rule IDs or prefixes that never run, dependent mode |
+| `TOptional<TArray<FString>> CommandLineRules`, `TOptional<EGameplayLintDependents> CommandLineDependents` | The command-line overrides for benchmark configurations. **Not** UPROPERTYs, so they are never saved. `TOptional` says "not given" without a magic value |
+| `PostInitProperties` | `Super` first (loads the saved config), then only on the class default object (the only instance ever asked, `GetDefault<>`): `FParse::Value(FCommandLine::Get(), TEXT("GameplayLintRules="), Rules, false)`. **`bShouldStopOnSeparator = false`** is needed because the value is a comma-separated list and FParse stops at a comma otherwise (`Parse.cpp:298`; review finding: `-GameplayLintRules=GL.Data,GL.UB` would have enabled only GL.Data). The dependent mode is parsed through `StaticEnum<EGameplayLintDependents>()->GetValueByNameString` (case-insensitive by default, `Class.h:2857–2869`); an unknown value logs a warning and keeps the saved setting instead of silently running another configuration (review finding) |
+| `IsRuleEnabled(RuleId)` | With an override: `None` → off, `All` → on, else on if a prefix matches. Without: `bEnabled` and not disabled. `MatchesPrefix` matches `GL.UB` against `GL.UB.ClientTickGroup` but not `GL.UBX` |
+| `GetCategoryName()` → `Plugins` | Groups the page under Plugins in Project Settings |
+
+### D3. `Public\GameplayLintReportSubsystem.h`, `Private\…cpp`
+
+| Part | Why |
+|---|---|
+| `UCLASS(MinimalAPI) : UEditorSubsystem` | The engine, not us, creates the rules, so they need a well-known place to report to. An editor subsystem lives as long as the editor session and is found with `GEditor->GetEditorSubsystem<>()` (`02` §4.1) |
+| `Begin` / `End` / `IsOpen` | Only an open report records anything. Normal editing (validate on save) produces Message Log entries and keeps nothing |
+| `RecordFinding`, `RecordCheckTime` (per rule, one duration per asset), `RecordDependents` (calls, assets added, ms) | What the commandlet's report needs. Times are kept raw; `score.py` computes medians and p99 |
+| `struct FDependentStats` (plain C++) | Not reflected: nothing outside C++ reads it |
+
+### D4. `Public\GameplayLintCommandlet.h`, `Private\GameplayLintCommandlet.cpp`
+
+| Part | Why |
+|---|---|
+| `UCLASS(MinimalAPI) class UGameplayLintCommandlet : public UDataValidationCommandlet` | `-run=GameplayLint`. A child of the stock commandlet through its 5.8 virtual steps (`DataValidationCommandlet.h:33–42`): the gathering, the validation path and the engine validators stay the stock ones |
+| Constructor `(const FObjectInitializer&) : Super(…)`; `UseCommandletResultAsExitCode = true` | The base class only has an `FObjectInitializer` constructor (`CustomConstructor`). Setting the flag makes the exit code this commandlet's verdict: otherwise any logged error turns 0 into 1 (`LaunchEngineLoop.cpp:4217–4224`), and validation errors are logged on purpose |
+| `Main` | Parses `-Paths=` (with `bShouldStopOnSeparator = false`, review finding), `-Changes=`, `-Report=` (default `Saved/GameplayLint/Report.json`), `-FailOn=`. `-Paths` with `-Changes` is ignored with a warning: the changelist path gathers its own assets (review finding). Then `Super::Main`; 0 becomes 3 when the fail threshold was reached |
+| `FilterAssetsToValidate` | The stock engine-content filter, then keep only packages under a `-Paths` folder (`"/Game/GLSeed/"` with the trailing slash, so `/Game/GLSeedOld` does not match) |
+| `SetupValidationSettings` | Stock settings plus `bCollectPerAssetDetails = true` (every asset's errors and warnings, how the stock configuration is scored) and `bSilent = true` (no progress dialog) |
+| `ValidateAssets` | Opens the report, times the phase, and runs either the stock full validation or a **pseudo-changelist** through the engine's own `ValidateChangelist` (`ReadChanges`: `M`/`D` packages, `F`/`X` files). An unreadable change list sets `bChangesUnreadable` |
+| `ProcessValidationResults` | Exit 2 for an unreadable change list (review finding: it used to look like a clean pass); the fail threshold from `NumInvalid` / `NumWarnings`; writes the report |
+| `WriteReport` | Streaming JSON (`TJsonWriter`, condensed): command line, change list, dependent mode, phase times (`MainStart - GStartTime`, main to validation, validation), counts, every validator's `FValidatorStatistics`, every asset's errors and warnings, the findings, per-rule per-asset times, dependent statistics. **UTF-8 without BOM** (review finding) |
+
+### D5. `GameplayLintCore.Build.cs` (changed in S3)
+
+Public: `DeveloperSettings` and `EditorSubsystem` join `DataValidation`, because public headers derive from their classes. Private: `Json`, `SourceControl` (`DataValidationChangelist.h` includes its changelist headers), `UnrealEd` (`GEditor`).
+
+### D6. `Tools\run_scan.py`
+
+| Part | Why |
+|---|---|
+| `pin_self(mask)` first, then `SetThreadExecutionState(ES_CONTINUOUS \| ES_SYSTEM_REQUIRED)` | Every editor it starts inherits the P-core mask (`05` A10, `09` T-1); the laptop doesn't sleep during a batch |
+| `CONFIGS` | The eight configurations of `01` §7.2 plus `S` (stock): rule set and dependent mode per name. `command_for` builds the command line; incremental configurations get `-Changes` and no `-Paths` |
+| `COMMON_ARGS` | `-unattended -nullrhi -nosplash -traceautostart=0 -BUILDMACHINE -stdout -FullStdOutLogOutput` for every configuration, so they differ only in what they validate. `-BUILDMACHINE` is needed by the pseudo-changelist (`02` §4.1) and is passed to all for equal conditions |
+| Priming run, then rounds with the order rotated; `--runs` default = smallest multiple of the number of configurations ≥ 4 | The protocol (`01` §8) |
+| `run_one` | `Popen`, timeout, kill in `finally`; accepts exit 0/1 for the stock commandlet and 0/3 for GameplayLint; reads the report; refuses to overwrite raw data |
+| `parse_log` | The stock commandlet writes no report, so its per-asset result lines (`EditorValidatorSubsystem.cpp:1011–1033`) and "Execution of commandlet took" are counted from the log. Flags a Zen retry (`09` F-6) |
+| `write_summary` | Median [min–max] of validation-phase, process and commandlet times per configuration, and the counts |
+
+### D7. `Tools\score.py`
+
+The definitions of `01` §7.3 in code, documented at the top of the file: rule-level detection over category `defect`; asset-level flagging (any error or warning, from the per-asset details); held-out and masked reported apart; false positives = control assets with a finding; wrong-rule findings listed; only `/Game/GLSeed/` counts; repeated runs must give identical finding sets; linear-interpolation percentiles. `--selftest` checks the numbers on a hand-made ground truth and report (`09` S3).
+
+---
+
+## Part E · Step S4: the rule base class, the walker and the tests
+
+### E1. `Public\GameplayLintRule.h`, `Private\GameplayLintRule.cpp`
+
+| Part | Why |
+|---|---|
+| `class FGameplayLintContext` (plain C++) | Collects one rule's findings on one asset: `Report(Where, Message)` with the rule's default severity, or with an explicit one. Holds a **reference** to the asset data: it never outlives the call |
+| `UCLASS(MinimalAPI, Abstract) class UGameplayLintRule : public UEditorValidatorBase` | The engine instantiates every concrete validator subclass and skips abstract ones (`EditorValidatorSubsystem.cpp:381–395`), so this base never runs itself and needs no registration |
+| `RuleId`, `Lesson`, `DefaultSeverity` (protected, plain members) | Set by each rule's constructor. Not UPROPERTYs: nothing edits or saves them |
+| `AppliesTo`, `CheckAsset`, `GatherDependents` (virtual, empty defaults) | The whole author's API (`02` §4.1). Empty defaults instead of pure virtual: a UObject class must be constructible (its class default object) |
+| `IsEnabled` | `Super::IsEnabled()` (the engine's `bIsEnabled` and `bIsConfigDisabled`) and our settings |
+| `CanValidateAsset_Implementation` | The 5.8 signature (`EditorValidatorBase.h:51`); calls `AppliesTo` |
+| `ValidateLoadedAsset_Implementation` | Times `CheckAsset` with `FPlatformTime::Cycles64`; for each issue an `AssetMessage` with an asset token and the text `[RuleId] Where: Message` (an error makes the asset invalid) and a report entry; then **always ends with a result**: `AssetPasses` unless invalid (the engine ensures otherwise, `EditorValidatorBase.cpp:52–62, 152`) |
+| `GetAssetsToValidateFromChangelist` | The engine's incremental hook (`EditorValidatorBase.h:37–41`): calls `GatherDependents` in the configured mode, times it, reports it. `Off` returns nothing |
+| `GEditor ? GEditor->GetEditorSubsystem<…>() : nullptr` | Rules are editor-only, but a null check costs nothing and keeps the base safe in any host |
+
+### E2. `Public\GameplayLintWalker.h`, `Private\GameplayLintWalker.cpp`
+
+| Part | Why |
+|---|---|
+| `struct FValue { Data, Property, Path }` | The value's memory, the property that declares it (for an element of an array, set or map: the **container** property, where UHT puts the metadata), and a readable path |
+| `ForEachValue(Asset, Struct, Visit)` | A DataTable: every row (`Row[R05].`); a Blueprint: the class default object (`Default.`) and every component template through `AActor::ForEachComponentOfActorClassDefault` (`Component[Name].`, inherited ones and child overrides included, `Actor.cpp:7349–7400`); anything else: the object |
+| `Walk` (one loop, since the simplify pass) | `FPropertyValueIterator` with `FProperty::StaticClass()` (match everything, so containers are seen before their elements); **skip transient properties** with `SkipRecursiveProperty` (e.g. `FGameplayTagContainer::ParentTags`, `GameplayTagContainer.h:623–624`, which is derived data and would double-count tags); a matching struct is visited and not searched further; an instanced reference owned by the object is collected for the next walk |
+| `VisitObject` | Walks an object, then its instanced sub-objects; a `Visited` set stops cycles and the double visit of a native component that is both a CDO sub-object and a component template |
+| `ForEachValueIn` | The same walk for a raw memory block (DataTable rows, tests) |
+| `FindMetaData` | `FProperty::FindMetaData` under `WITH_METADATA` (null in builds without metadata) |
+
+### E3. `GameplayLintBench\Private\Tests\GLTestRule.h` and `GameplayLintCoreTests.cpp`
+
+| Part | Why |
+|---|---|
+| `UGLTestRule` | A concrete rule that reports an error on names containing "Bad" and a warning on "Warn". **`IsEnabled()` returns false**: the engine instantiates every concrete validator (`01b` #1), and this one must never run in real scans; the tests call `ValidateLoadedAsset` directly |
+| `EAutomationTestFlags::EditorContext \| ProductFilter` | Runs in the editor; one filter flag, as the test macro requires |
+| `GameplayLint.Walker.EveryVariant` | One tag per structural variant (top, container, nested, array, map, instanced object, instanced struct) on an in-memory data asset; the walker must find each exactly once, with element and sub-object paths |
+| `GameplayLint.Walker.DataTableRows` | Two rows, one tag each; paths start with `Row[R01].` |
+| `GameplayLint.Walker.Metadata` | Exactly one `LintMonotonic` curve (CooldownByLevel, "Increasing") and one `LintRequired` curve |
+| `GameplayLint.Rule.Contract` | Good / Bad / Warn objects: result, error and warning counts, the rule ID in every message, and the rule never enabled |
+| `Tools\run_tests.bat` | Adapted from UE5-UpdateBudget: `-ExecCmds="Automation RunTests <filter>;Quit"`, headless, `-ReportExportPath`, exit code = result |

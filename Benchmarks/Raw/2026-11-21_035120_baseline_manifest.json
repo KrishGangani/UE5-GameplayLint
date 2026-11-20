@@ -1,0 +1,364 @@
+{
+ "batch": "2026-11-21_035120_baseline",
+ "configs": [
+  "S",
+  "F0"
+ ],
+ "runs_per_config": 4,
+ "all_assets": true,
+ "changes": null,
+ "environment": {
+  "date": "2026-11-21T03:51:20",
+  "engine": "5.8.4 (CL 58902052)",
+  "build_config": "Development editor, UnrealEditor-Cmd.exe in commandlet mode",
+  "compiler": "MSVC 14.44.35229, Windows SDK 10.0.22621.0",
+  "cpu": "Intel(R) Core(TM) i7-14650HX",
+  "ram_gb": "31.6",
+  "os": "Microsoft Windows 11 Home Single Language build 26200",
+  "power_plan": "Power Scheme GUID: 6fecc5ae-f350-48a5-b669-b472cb895ccf  (Turbo)",
+  "on_ac_power": true,
+  "cpu_affinity": "0xFFFF (performance cores only; hybrid CPU)",
+  "common_args": [
+   "-unattended",
+   "-nullrhi",
+   "-nosplash",
+   "-traceautostart=0",
+   "-BUILDMACHINE",
+   "-stdout",
+   "-FullStdOutLogOutput"
+  ]
+ },
+ "corpus": {
+  "assets": 1000,
+  "seed": 1,
+  "sha256": "11fdc0bea9a7fe60ed0a629ee915a320063ab5cf47097c2f7e40c07b5485b258",
+  "ground_truth": "2026-11-21_035120_baseline_groundtruth.json"
+ },
+ "runs": [
+  {
+   "name": "2026-11-21_035120_baseline_S_N1000_r0_prime",
+   "config": "S",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=DataValidation",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_S_N1000_r0_prime.log"
+   ],
+   "exit_code": 1,
+   "wall_seconds": 9.637,
+   "result_lines": {
+    "valid": 172,
+    "valid_with_warnings": 832,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.38,
+   "zen_retry": false,
+   "ok": true,
+   "priming": true
+  },
+  {
+   "name": "2026-11-21_035120_baseline_S_N1000_r1",
+   "config": "S",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=DataValidation",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_S_N1000_r1.log"
+   ],
+   "exit_code": 1,
+   "wall_seconds": 9.525,
+   "result_lines": {
+    "valid": 172,
+    "valid_with_warnings": 832,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.28,
+   "zen_retry": false,
+   "ok": true
+  },
+  {
+   "name": "2026-11-21_035120_baseline_F0_N1000_r1",
+   "config": "F0",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=GameplayLint",
+    "-Report=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r1.json",
+    "-GameplayLintRules=None",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r1.log"
+   ],
+   "exit_code": 3,
+   "wall_seconds": 9.58,
+   "result_lines": {
+    "valid": 169,
+    "valid_with_warnings": 835,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.38,
+   "zen_retry": false,
+   "ok": true,
+   "times_s": {
+    "process_start_to_main": 7.260913100093603,
+    "main_to_validate": 0.17216119915246964,
+    "validate": 1.1441839002072811
+   },
+   "counts": {
+    "requested": 1011,
+    "checked": 1011,
+    "valid": 1004,
+    "invalid": 7,
+    "warnings": 842,
+    "skipped": 0,
+    "unable": 0
+   },
+   "findings": 0,
+   "dependents": {}
+  },
+  {
+   "name": "2026-11-21_035120_baseline_F0_N1000_r2",
+   "config": "F0",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=GameplayLint",
+    "-Report=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r2.json",
+    "-GameplayLintRules=None",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r2.log"
+   ],
+   "exit_code": 3,
+   "wall_seconds": 9.717,
+   "result_lines": {
+    "valid": 169,
+    "valid_with_warnings": 835,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.38,
+   "zen_retry": false,
+   "ok": true,
+   "times_s": {
+    "process_start_to_main": 7.356606997549534,
+    "main_to_validate": 0.1642822027206421,
+    "validate": 1.157694797962904
+   },
+   "counts": {
+    "requested": 1011,
+    "checked": 1011,
+    "valid": 1004,
+    "invalid": 7,
+    "warnings": 842,
+    "skipped": 0,
+    "unable": 0
+   },
+   "findings": 0,
+   "dependents": {}
+  },
+  {
+   "name": "2026-11-21_035120_baseline_S_N1000_r2",
+   "config": "S",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=DataValidation",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_S_N1000_r2.log"
+   ],
+   "exit_code": 1,
+   "wall_seconds": 9.563,
+   "result_lines": {
+    "valid": 172,
+    "valid_with_warnings": 832,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.48,
+   "zen_retry": false,
+   "ok": true
+  },
+  {
+   "name": "2026-11-21_035120_baseline_S_N1000_r3",
+   "config": "S",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=DataValidation",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_S_N1000_r3.log"
+   ],
+   "exit_code": 1,
+   "wall_seconds": 9.539,
+   "result_lines": {
+    "valid": 172,
+    "valid_with_warnings": 832,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.35,
+   "zen_retry": false,
+   "ok": true
+  },
+  {
+   "name": "2026-11-21_035120_baseline_F0_N1000_r3",
+   "config": "F0",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=GameplayLint",
+    "-Report=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r3.json",
+    "-GameplayLintRules=None",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r3.log"
+   ],
+   "exit_code": 3,
+   "wall_seconds": 9.824,
+   "result_lines": {
+    "valid": 172,
+    "valid_with_warnings": 832,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.42,
+   "zen_retry": false,
+   "ok": true,
+   "times_s": {
+    "process_start_to_main": 7.377359800040722,
+    "main_to_validate": 0.20031410083174706,
+    "validate": 1.1509580984711647
+   },
+   "counts": {
+    "requested": 1011,
+    "checked": 1011,
+    "valid": 1004,
+    "invalid": 7,
+    "warnings": 839,
+    "skipped": 0,
+    "unable": 0
+   },
+   "findings": 0,
+   "dependents": {}
+  },
+  {
+   "name": "2026-11-21_035120_baseline_F0_N1000_r4",
+   "config": "F0",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=GameplayLint",
+    "-Report=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r4.json",
+    "-GameplayLintRules=None",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_F0_N1000_r4.log"
+   ],
+   "exit_code": 3,
+   "wall_seconds": 9.519,
+   "result_lines": {
+    "valid": 172,
+    "valid_with_warnings": 832,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.38,
+   "zen_retry": false,
+   "ok": true,
+   "times_s": {
+    "process_start_to_main": 7.237822700291872,
+    "main_to_validate": 0.1603861004114151,
+    "validate": 1.1579858995974064
+   },
+   "counts": {
+    "requested": 1011,
+    "checked": 1011,
+    "valid": 1004,
+    "invalid": 7,
+    "warnings": 839,
+    "skipped": 0,
+    "unable": 0
+   },
+   "findings": 0,
+   "dependents": {}
+  },
+  {
+   "name": "2026-11-21_035120_baseline_S_N1000_r4",
+   "config": "S",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=DataValidation",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_035120_baseline_S_N1000_r4.log"
+   ],
+   "exit_code": 1,
+   "wall_seconds": 10.074,
+   "result_lines": {
+    "valid": 172,
+    "valid_with_warnings": 832,
+    "invalid": 7,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.51,
+   "zen_retry": false,
+   "ok": true
+  }
+ ]
+}
