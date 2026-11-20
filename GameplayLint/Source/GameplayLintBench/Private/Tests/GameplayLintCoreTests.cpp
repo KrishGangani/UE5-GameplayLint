@@ -8,22 +8,15 @@
 #include "Engine/DataTable.h"
 #include "GameplayLintWalker.h"
 #include "GLFixtureData.h"
+#include "GLTestHelpers.h"
 #include "GLTestRule.h"
 #include "Misc/DataValidation.h"
 #include "UObject/Package.h"
 
 namespace GameplayLintTests
 {
-	/** Editor context; one filter (ProductFilter), as the test macro requires. */
-	constexpr EAutomationTestFlags Flags = EAutomationTestFlags::EditorContext | EAutomationTestFlags::ProductFilter;
-
-	/** A tag by name, known to the dictionary or not (the same path the seeding commandlet uses). */
-	FGameplayTag MakeTag(const TCHAR* Name)
-	{
-		FGameplayTag Tag;
-		Tag.FromExportString(Name, PPF_SerializedAsImportText);
-		return Tag;
-	}
+	using GameplayLintTestHelpers::Flags;
+	using GameplayLintTestHelpers::MakeTag;
 
 	/** Every non-None tag the walker finds in Asset, with its path. */
 	TMap<FString, FString> TagsIn(UObject* Asset)

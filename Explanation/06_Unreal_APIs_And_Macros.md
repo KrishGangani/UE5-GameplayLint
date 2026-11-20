@@ -30,6 +30,7 @@
 | 21 | `AActor::ForEachComponentOfActorClassDefault` | S4 |
 | 22 | Automation tests: `IMPLEMENT_SIMPLE_AUTOMATION_TEST` | S4 |
 | 23 | Small utilities: `TOptional`, `TFunctionRef`, `StaticEnum`, `LOCTEXT`/`NSLOCTEXT`/`INVTEXT`, `FPlatformTime::Cycles64` | S1–S4 |
+| 24 | `FAssetData` (the registry's view of an asset) and `FindObject` by path | S5 |
 
 ---
 
@@ -400,3 +401,20 @@
 | `LOCTEXT` / `NSLOCTEXT` / `INVTEXT`, `FText::Format` | Localisable messages with a namespace (file-wide `LOCTEXT_NAMESPACE`, or explicit), and an invariant text for test data |
 | `FPlatformTime::Cycles64` / `ToMilliseconds64` | Per-asset rule timing with the high-resolution counter |
 | `FRandomStream`, `std::numeric_limits<float>::quiet_NaN()` / `infinity()` | Reproducible choices; the non-finite curve keys |
+
+## 24. `FAssetData` (the registry's view of an asset) and `FindObject` by path
+
+1. **What it is.**
+   - `FAssetData` (`CoreUObject/Public/AssetRegistry/AssetData.h:163`): what the asset registry knows about an asset without loading it. That is its `PackageName` and `AssetName` (`:190, 196`), its class, and its tags.
+   - `IsRedirector()` (`:452`), `IsInstanceOf(Class)` (`:472`), `GetTagValue(Tag, Out)` (`:645`), and `GetAsset()` (`:573`), which loads it.
+   - `FindObject<T>(Outer, Name)` (`UObjectGlobals.h:2075`): finds an object that is already in memory.
+2. **Why it exists.** Tools must decide what to look at before paying for a load. And code that may not include a class's header can still find the class by its path.
+3. **How it works.**
+   - The registry fills `FAssetData` from the package headers on disk.
+   - `IsInstanceOf` compares the asset's class path with the class hierarchy of loaded classes (by default it does not load the asset's class).
+   - `FindObject` with a null outer reads the name as a full path that starts with a package, such as `/Script/GameplayLintDataRules.GLRule_UnknownTag` (`StaticFindObject`'s comment, `UObjectGlobals.h`).
+4. **When to use it.** `FAssetData` in `CanValidateAsset` / `AppliesTo`, and in dependents queries; `FindObject` for native classes, which are always loaded.
+5. **When not to.** `GetAsset()` inside `AppliesTo` (a load per asset, for every rule). `FindObject` for an asset that may not be loaded yet (it returns null; use a soft path and load it).
+6. **Common mistakes.** Treating a redirector as the asset it points to; expecting `FindObject` to load.
+7. **Example.** `return !AssetData.IsRedirector();` · `UClass* Class = FindObject<UClass>(nullptr, TEXT("/Script/GameplayLintDataRules.GLRule_UnknownTag"));`
+8. **In this project.** Every data rule's `AppliesTo`. The rule tests find the packs' rule classes by path, so the bench module needs no pack header.

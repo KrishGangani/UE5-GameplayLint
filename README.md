@@ -4,11 +4,11 @@
 
 **Domain:** Editor tools & automation · developer productivity · **Difficulty:** ★★★☆☆ · **Engine:** UE 5.8.4
 
-> **Status: in progress. There are no results yet.** Phases 1–4 are done, and Phase 5 steps S1–S4 (fixtures, the seeded corpus, the measuring harness, the rule base) are built and tested. The stock engine's baseline was measured before any rule exists: on a seeded 1,000-asset corpus it flags 28 of 200 defects, all of them unknown gameplay tags, as warnings ([09](Explanation/09_Testing_And_Benchmarks.md)). The rules themselves come next. The ten portfolio projects are developed in parallel, and every Unreal Engine build and benchmark runs one at a time on the same machine, so measurements stay clean. Sections marked *(pending)* are filled in only from real measurements, in the phase named. The success criteria are **targets fixed before any rule code exists, not results**.
+> **Status: in progress. There are no results yet.** Phases 1–4 are done, and Phase 5 steps S1–S4 (fixtures, the seeded corpus, the measuring harness, the rule base) are built and tested. The stock engine's baseline was measured before any rule exists: on a seeded 1,000-asset corpus it flags 28 of 200 defects, all of them unknown gameplay tags, as warnings ([09](Explanation/09_Testing_And_Benchmarks.md)). The first two rules (S5) find all 92 seeded unknown-tag and dangling-row defects with no false alarms; the remaining rules come next. The ten portfolio projects are developed in parallel, and every Unreal Engine build and benchmark runs one at a time on the same machine, so measurements stay clean. Sections marked *(pending)* are filled in only from real measurements, in the phase named. The success criteria are **targets fixed before any rule code exists, not results**.
 
 | Phase | 1 Problem | 2 Research | 3 Architecture | 4 Foundation | 5 Implementation | 6 Explanation | 7 Testing | 8 Profiling | 9 Review | 10 Portfolio |
 |---|---|---|---|---|---|---|---|---|---|---|
-| State | ✓ | ✓ | ✓ final | ✓ | S1–S4 of 10 ✓, next S5 | ongoing | — | — | — | — |
+| State | ✓ | ✓ | ✓ final | ✓ | S1–S5 of 10 ✓, next S6 | ongoing | — | — | — | — |
 
 ---
 

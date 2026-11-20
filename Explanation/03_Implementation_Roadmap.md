@@ -11,7 +11,7 @@
 
 ---
 
-**Progress (2026-11-21):** Phases 1–3 ✅. **Phase 4 ✅** (F1–F3; checks F-1 to F-6 and T-1 in `09`). **S1–S4 ✅** (one commit: they were built, seeded, measured and tested as one queue chain; `09` P5-1 to P5-3). The stock baseline was captured before any rule code: S = F0, and the stock run flags 28 of 200 seeded defects, all of them unknown tags. Next: **S5**.
+**Progress (2026-11-21):** Phases 1–3 ✅. **Phase 4 ✅** (F1–F3; checks F-1 to F-6 and T-1 in `09`). **S1–S4 ✅** (one commit: they were built, seeded, measured and tested as one queue chain; `09` P5-1 to P5-3). The stock baseline was captured before any rule code: S = F0, and the stock run flags 28 of 200 seeded defects, all of them unknown tags. **S5 ✅** (`09` P5-4): UnknownTag 28/28, DanglingRow 64/64, 0 false positives. Next: **S6**.
 
 ## Phase 4: Foundation (no rule code yet) ✅
 

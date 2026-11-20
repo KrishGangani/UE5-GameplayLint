@@ -41,6 +41,15 @@ Paths are relative to `Engine/`; `EVS.cpp` is `Plugins/Editor/DataValidation/Sou
 | A test-only validator left enabled | Every real scan runs it and reports `GL.Test.*` findings | `UGLTestRule::IsEnabled()` returns false; the test calls it directly | `F-3`-style: list the enabled validators in a scan log |
 | Reading a Blueprint's components from its own construction script only | Components inherited from a parent Blueprint are never checked | Use `AActor::ForEachComponentOfActorClassDefault` (`06` §21) | A test with a component added in the parent only |
 
+## Step S5: the first rules (Phase 5)
+
+| Mistake | How to spot it | How to prevent it | How to debug it |
+|---|---|---|---|
+| ⚠ caught (code review): **a rule test with no known-good case of the thing it checks.** The first UnknownTag test had only "no tags" as its clean case, so a rule that flagged *every* tag would have passed | Mutate the rule's condition and see whether a test fails | Every rule test has a near-miss case: a declared tag, a handle to a row that exists, a flat curve | Invert the rule's condition locally; the test must fail |
+| ⚠ caught (code review): **fixed object names in the transient package** (`DT_TestRows`): a second run in the same editor session reconstructs the first run's live object in place | Only on a re-run in one session: odd stale state | Unnamed `NewObject`, or `MakeUniqueObjectName` | Run the test twice from the Session Frontend |
+| Using `FindRow` to test whether a row exists | A warning in the log for every missing row, and the row struct type is needed | `GetRowMap().Contains(RowName)`, or `FindRow` with `bWarnIfRowMissing = false` (`DataTable.h:219`) (`05` F2) | Grep the log for "requested row … not in DataTable" (`DataTable.cpp:1094`) |
+| A rule that loads assets in `AppliesTo` | Validation gets slow on assets the rule never reports on | `AppliesTo` reads `FAssetData` only (`06` §24) | Time `CanValidateAsset` separately |
+
 ## Data Validation: pitfalls found in Phase 2 (designed against)
 
 | Mistake | How to spot it | How to prevent it | How to debug it |

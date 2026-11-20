@@ -152,8 +152,45 @@ un_scan.py --configs S,F0 --all-assets --label baseline` (pinned to `0xFFFF`; on
 
 ---
 
-## Steps S5–S8 and Phases 7–8 (to be written)
+## Phase 5 · Step S5: `GL.Data.UnknownTag` and `GL.Data.DanglingRow` (2026-11-21)
 
-- S5–S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
+| # | Check | Command / job | Result |
+|---|---|---|---|
+| P5-4 | Build, tests, first F1 run | job `20261121_042708_01780c`: `build.bat` editor + game, `run_tests.bat`, `run_scan.py --configs F1 --runs 1 --no-prime --label s5` | ✅ Exit 0. Builds: editor 12.2 s, game 2.0 s, **0 errors, 0 warnings** (no plugin-dependency warning: the pack lists the `DataValidation` plugin). **Tests ✅ 6/6**: the four S4 tests plus `GameplayLint.Rules.UnknownTag` (its declared-tag case ran: no "dictionary is empty" note in the log) and `GameplayLint.Rules.DanglingRow`. F1 run: exit 3 (assets failed, `-FailOn=Error`), 9.4 s |
+
+**F1 correctness at N = 1,000** (batch `2026-11-21_050802_s5`, one run: a correctness check; timing belongs to Phase 8):
+
+| Rule | Seeded defects | Found at rule level | Cells (kind × variant) | False positives |
+|---|---|---|---|---|
+| `GL.Data.UnknownTag` | 28 | **28 (100 %)** | 10 cells, all 100 %, incl. instanced structs, map values, Blueprint defaults, DataTable rows | 0 |
+| `GL.Data.DanglingRow` | 64 | **64 (100 %)** | 17 cells, all 100 %: missing DataTable and CurveTable rows, rows without a table, empty required handles | 0 |
+| (rules from S6–S7) | 108 | 0 (not built yet) | | |
+
+- **Controls:** 0 of 672 clean assets and 0 of 130 near-misses carry any finding (SC2 target ≤ 0.5 %).
+- **Wrong-rule findings:** 0.
+- **Held out:** 0 of 1, an expected miss.
+- **Masked:** the 7 assets whose own `IsDataValid` fails were not checked by any rule. Rules ran on 1,003 of the 1,010 assets, as the engine's order predicts (`EditorValidatorSubsystem.cpp:657–663`).
+- **Per-asset rule time** (`check_times_ms`, 1,003 assets): DanglingRow median 0.034 ms, p99 0.060 ms; UnknownTag median 0.025 ms, p99 0.055 ms. That is well inside SC5 (median ≤ 0.5 ms, p99 ≤ 5 ms) at this size; the full SC5 answer is Phase 8's.
+- **The stock run's view of the same corpus:** the 28 unknown tags are now **errors with a rule ID and a field path** (`[GL.Data.UnknownTag] Map[K1].Tag: …`) instead of asset-level load warnings. The 64 dangling handles were invisible to the stock run.
+
+**Audit trail for S5:**
+- **`code-review` (medium):** 6 findings.
+  - **R1 (efficiency):** the rules apply to every asset that is not a redirector, so each walks every property of meshes and textures too. **Deferred with data:** it goes to `11` as a candidate (a per-struct cache in the walker), waiting for SC4/SC5 numbers on large non-data assets.
+  - **R2:** the UnknownTag test had no declared-tag case, so a rule that flagged every tag would pass. **Fixed.**
+  - **R3:** fixed object names in the transient package. **Fixed:** the tables are unnamed.
+  - **R4:** the tests would write findings into the editor's report. **False positive:** the report records only while a commandlet has it open, and `Begin()` resets it (`GameplayLintReportSubsystem.cpp:7–34`).
+  - **R5 (pre-existing):** maps' placed actors are not walked. **Documented** as an expected miss (`02` §2).
+  - **R6:** the docs for S5 were not yet written at review time. **Done** in this step.
+- **`simplify`** (the four angles, by myself; the brief forbids sub-agents):
+  - **Reuse, applied:** `Flags` and `MakeTag` now live in one shared test header, `GLTestHelpers.h`, instead of one copy per test file.
+  - **Simplification:** the two handle types already share one decision function (`CheckHandle`); nothing further.
+  - **Efficiency:** see R1.
+  - **Altitude:** none. The rules use the core walker and add no special cases to it.
+
+---
+
+## Steps S6–S8 and Phases 7–8 (to be written)
+
+- S6–S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
 - Functional, edge-case and stability tests (Phase 7), including the on-save half of H3.
 - The full benchmark protocol and the SC1–SC7, E1–E2 results (Phase 8).

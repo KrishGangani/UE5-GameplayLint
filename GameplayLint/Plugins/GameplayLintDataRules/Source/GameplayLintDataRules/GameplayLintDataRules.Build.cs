@@ -9,6 +9,7 @@ public class GameplayLintDataRules : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "GameplayLintCore" });
+		// DataValidation: every module that defines a rule links the validator base itself (the link rule, 02 section 3).
+		PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "DataValidation", "GameplayTags", "GameplayLintCore" });
 	}
 }

@@ -347,7 +347,7 @@ F0's equivalence with the stock `-run=DataValidation` (same "Files Checked / Fai
 ## 12. Known limits (stated, not hidden)
 
 1. **Detection on a self-made corpus is an upper bound.** Mitigated by fixing kinds, variants, near-misses and held-out kinds before rule code (`01` §7.1, §9).
-2. **Not recognised or not walked in v1:** a project's own reference types (a table and a row name in two plain fields: the corpus's held-out kind), Blueprint graph pin literals, values hidden in custom serialisation. These are expected misses. (`FInstancedStruct` payloads *are* walked: 5.8's property iterator unwraps them, `UnrealType.cpp:57–65`.)
+2. **Not recognised or not walked in v1:** level-placed data (a map is one `UWorld` asset; the walker does not visit its actors or external actors, found by the S5 code review), a project's own reference types (a table and a row name in two plain fields: the corpus's held-out kind), Blueprint graph pin literals, values hidden in custom serialisation. These are expected misses. (`FInstancedStruct` payloads *are* walked: 5.8's property iterator unwraps them, `UnrealType.cpp:57–65`.)
 3. **Registry data is on-disk only.** Unsaved edits don't feed dependent gathering.
 4. **Load time dominates.** GameplayLint can't make the engine's full scan faster than its loads (`01b` #6).
 5. **The UpdateBudget rules depend on configuration.** Wrong class paths give wrong results; the settings page says so.

@@ -26,6 +26,10 @@
 		{
 			"Name": "GameplayLintCore",
 			"Enabled": true
+		},
+		{
+			"Name": "DataValidation",
+			"Enabled": true
 		}
 	]
 }

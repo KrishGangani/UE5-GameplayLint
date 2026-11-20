@@ -9,6 +9,7 @@
 | C | S2 (seeded corpus) | `GameplayLintSeedCommandlet.h/.cpp`, bench `Build.cs`, `Tools\seed.py` |
 | D | S3 (harness) | `GameplayLintTypes.h`, `GameplayLintSettings.h/.cpp`, `GameplayLintReportSubsystem.h/.cpp`, `GameplayLintCommandlet.h/.cpp`, core `Build.cs`, `Tools\run_scan.py`, `Tools\score.py` |
 | E | S4 (rule base, walker, tests) | `GameplayLintRule.h/.cpp`, `GameplayLintWalker.h/.cpp`, `Tests\GLTestRule.h`, `Tests\GameplayLintCoreTests.cpp`, `Tools\run_tests.bat` |
+| F | S5–S6 (data rules) | `GLDataRules.h/.cpp`, the pack's `Build.cs` and `.uplugin`, `Tests\GameplayLintRuleTests.cpp`, `Tests\GLTestHelpers.h` |
 
 ---
 
@@ -443,9 +444,58 @@ The definitions of `01` §7.3 in code, documented at the top of the file: rule-l
 | Part | Why |
 |---|---|
 | `UGLTestRule` | A concrete rule that reports an error on names containing "Bad" and a warning on "Warn". **`IsEnabled()` returns false**: the engine instantiates every concrete validator (`01b` #1), and this one must never run in real scans; the tests call `ValidateLoadedAsset` directly |
-| `EAutomationTestFlags::EditorContext \| ProductFilter` | Runs in the editor; one filter flag, as the test macro requires |
+| `EAutomationTestFlags::EditorContext \| ProductFilter` | Runs in the editor; one filter flag, as the test macro requires. Since S5 it comes from `GLTestHelpers.h` together with `MakeTag` (`05` F4) |
 | `GameplayLint.Walker.EveryVariant` | One tag per structural variant (top, container, nested, array, map, instanced object, instanced struct) on an in-memory data asset; the walker must find each exactly once, with element and sub-object paths |
 | `GameplayLint.Walker.DataTableRows` | Two rows, one tag each; paths start with `Row[R01].` |
 | `GameplayLint.Walker.Metadata` | Exactly one `LintMonotonic` curve (CooldownByLevel, "Increasing") and one `LintRequired` curve |
 | `GameplayLint.Rule.Contract` | Good / Bad / Warn objects: result, error and warning counts, the rule ID in every message, and the rule never enabled |
 | `Tools\run_tests.bat` | Adapted from UE5-UpdateBudget: `-ExecCmds="Automation RunTests <filter>;Quit"`, headless, `-ReportExportPath`, exit code = result |
+
+---
+
+## Part F · Data rules (S5–S6)
+
+The first rule code. Everything here is in the `GameplayLintDataRules` pack; the core did not change (`02` §3).
+
+### F1. `Private\GLDataRules.h`
+
+| Part | Why |
+|---|---|
+| In `Private\`, not `Public\` | Nothing may include a pack (the dependency rule, `02` §3). UHT still reflects private headers, so the engine finds the classes |
+| `UCLASS() class UGLRule_UnknownTag : public UGameplayLintRule`, and the same for `UGLRule_DanglingRow` | Concrete, so the validator subsystem instantiates each one at start-up (`EditorValidatorSubsystem.cpp:381–395`); no registration code anywhere. Not `MinimalAPI`: no other module uses the class |
+| Constructor; `AppliesTo` and `CheckAsset` overrides | The rule author's whole API (`05` E1). The constructor sets `RuleId`, `Lesson` and `DefaultSeverity` |
+
+### F2. `Private\GLDataRules.cpp`
+
+| Part | Why |
+|---|---|
+| `#include UE_INLINE_GENERATED_CPP_BY_NAME(GLDataRules)` | The generated reflection code for this header, compiled in this file |
+| `LOCTEXT_NAMESPACE "GameplayLintDataRules"` | Every message is localisable text (`06` §23) |
+| `AppliesTo`: `!AssetData.IsRedirector()` | Any asset can hold a tag or a row handle, so the rules apply to every class; a redirector holds no data of its own. `AppliesTo` sees only registry data, so it must not load anything |
+| **UnknownTag** `CheckAsset`: `ForEachValue(Asset, FGameplayTag::StaticStruct(), …)` | The walker visits every tag value: top-level, inside containers (`FGameplayTagContainer` stores an array of `FGameplayTag`), nested, array and map elements, instanced objects and structs, DataTable rows, Blueprint defaults and templates |
+| `RequestGameplayTag(Name, /*ErrorIfNotFound*/ false).IsValid()` | The dictionary check. `FGameplayTag::IsValid()` would only test for `None` (`GameplayTagContainer.h:138–141`) |
+| One finding per unknown value, at `Value.Path` | The path names the field ("List[0].Tag"), so the message says where to look |
+| **DanglingRow** `GLDataRules::CheckHandle` | One decision table for both handle types: table set and row empty (only an error if the property says `LintRequired`); table set and row missing; row set but no table; both empty and required |
+| `FindMetaData(Value, "LintRequired")` | The annotation lives on the declaring property; for an array element, the walker hands over the array property (`05` E2) |
+| `Handle.DataTable->GetRowMap().Contains(Handle.RowName)` | A direct map lookup. `FindRow` would log a warning for every missing row and needs the row type |
+| The same for `FCurveTableRowHandle` | Same defect, other table type; `UCurveTable::GetRowMap()` holds the curves by row name |
+| No asset loads | A handle's table is a hard reference, so it was loaded with the asset |
+
+### F3. `GameplayLintDataRules.Build.cs` and `GameplayLintDataRules.uplugin` (changed in S5)
+
+| Part | Why |
+|---|---|
+| `DataValidation` in the private dependencies | The link rule: a module that defines a rule links the validator base itself (`02` §3; the S1–S4 link failure, `09`) |
+| `GameplayTags` | `UGameplayTagsManager` and `FGameplayTag` |
+| `"DataValidation"` under `"Plugins"` in the `.uplugin` | `DataValidation` is a plugin module, so the plugin must list the plugin (`06` §5); otherwise UBT warns (`UEBuildTarget.cs:1564–1579`) |
+
+### F4. `GameplayLintBench\Private\Tests\GameplayLintRuleTests.cpp` and `GLTestHelpers.h`
+
+| Part | Why |
+|---|---|
+| `GLTestHelpers.h`: `Flags`, `MakeTag` | Shared by both test files of the module (the simplify pass in S5 found the second copy). `inline` so that one header can define them in several `.cpp` files |
+| `NewRule(Test, ClassPath)`: `FindObject<UClass>(nullptr, TEXT("/Script/GameplayLintDataRules.GLRule_UnknownTag"))` | The packs have no public headers, so the tests find a rule class by its path, as the engine does. A null outer means "the name starts with a package" (`UObjectGlobals.h`, `StaticFindObject`) |
+| `Validate(Rule, Asset, OutResult)` | The engine's own entry point, `UEditorValidatorBase::ValidateLoadedAsset`, with a fresh `FDataValidationContext`; returns every message text |
+| `Expect(Test, Rule, RuleId, Case, Setup, Expected)` | One case: a new in-memory data asset, `Setup` changes it, then the exact number of findings, the result (Invalid exactly when a finding is expected), a substring per expected finding, and the rule ID in every message |
+| `GameplayLint.Rules.UnknownTag` | No tags: valid. **A declared tag** (the first one `RequestAllGameplayTags` returns), single and in a container: valid. Without this case, a rule that flagged every tag would pass (code review, S5); if the dictionary is empty, the case is skipped and the test says so. An unknown top-level tag. An unknown tag in a container and in an array element (the path names `List[0]`) |
+| `GameplayLint.Rules.DanglingRow` | An in-memory DataTable (`R00`) and CurveTable (`C00`), **unnamed**, so a second run in the same editor session gets fresh objects. Valid handles; a missing DataTable row; a missing CurveTable row; a row without a table in a nested payload; an empty required handle; a required handle with a table but no row |

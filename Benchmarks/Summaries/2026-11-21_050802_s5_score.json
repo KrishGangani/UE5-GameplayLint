@@ -1,0 +1,1223 @@
+{
+ "F1": {
+  "defects": 200,
+  "detected": 92,
+  "recall": 0.46,
+  "rules": {
+   "GL.UB.TickOutsideBudget": [
+    0,
+    28
+   ],
+   "GL.Data.UnknownTag": [
+    28,
+    28
+   ],
+   "GL.Data.DanglingRow": [
+    64,
+    64
+   ],
+   "GL.Data.Curve": [
+    0,
+    33
+   ],
+   "GL.UB.ClientTickGroup": [
+    0,
+    21
+   ],
+   "GL.UB.ClientNeverTicks": [
+    0,
+    26
+   ]
+  },
+  "cells": {
+   "GL.Data.Curve|CurveNonFinite|Array": [
+    0,
+    2
+   ],
+   "GL.Data.Curve|CurveNonFinite|BlueprintDefault": [
+    0,
+    8
+   ],
+   "GL.Data.Curve|CurveNonFinite|Instanced": [
+    0,
+    6
+   ],
+   "GL.Data.Curve|CurveNonFinite|Map": [
+    0,
+    2
+   ],
+   "GL.Data.Curve|CurveNonFinite|Nested": [
+    0,
+    3
+   ],
+   "GL.Data.Curve|CurveNonFinite|Row": [
+    0,
+    8
+   ],
+   "GL.Data.Curve|CurveRequired|Top": [
+    0,
+    3
+   ],
+   "GL.Data.Curve|CurveReversal|Top": [
+    0,
+    1
+   ],
+   "GL.Data.DanglingRow|CurveRowMissing|Top": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowMissing|Array": [
+    5,
+    5
+   ],
+   "GL.Data.DanglingRow|RowMissing|BlueprintDefault": [
+    7,
+    7
+   ],
+   "GL.Data.DanglingRow|RowMissing|Instanced": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowMissing|Map": [
+    2,
+    2
+   ],
+   "GL.Data.DanglingRow|RowMissing|Nested": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowMissing|Row": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowMissing|Top": [
+    2,
+    2
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Array": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowNullTable|BlueprintDefault": [
+    10,
+    10
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Instanced": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Map": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Nested": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Row": [
+    5,
+    5
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Top": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowRequired|Top": [
+    2,
+    2
+   ],
+   "GL.Data.UnknownTag|TagContainer|Top": [
+    1,
+    1
+   ],
+   "GL.Data.UnknownTag|TagSingle|Array": [
+    5,
+    5
+   ],
+   "GL.Data.UnknownTag|TagSingle|BlueprintDefault": [
+    2,
+    2
+   ],
+   "GL.Data.UnknownTag|TagSingle|Instanced": [
+    4,
+    4
+   ],
+   "GL.Data.UnknownTag|TagSingle|InstancedStruct": [
+    6,
+    6
+   ],
+   "GL.Data.UnknownTag|TagSingle|Map": [
+    4,
+    4
+   ],
+   "GL.Data.UnknownTag|TagSingle|Nested": [
+    2,
+    2
+   ],
+   "GL.Data.UnknownTag|TagSingle|Row": [
+    3,
+    3
+   ],
+   "GL.Data.UnknownTag|TagSingle|Top": [
+    1,
+    1
+   ],
+   "GL.UB.ClientNeverTicks|StartDisabled|Subclass": [
+    0,
+    16
+   ],
+   "GL.UB.ClientNeverTicks|StartDisabled|Template": [
+    0,
+    10
+   ],
+   "GL.UB.ClientTickGroup|TickGroup|Subclass": [
+    0,
+    15
+   ],
+   "GL.UB.ClientTickGroup|TickGroup|Template": [
+    0,
+    6
+   ],
+   "GL.UB.TickOutsideBudget|ActorTick|NativeParent": [
+    0,
+    9
+   ],
+   "GL.UB.TickOutsideBudget|Component|Inherited": [
+    0,
+    7
+   ],
+   "GL.UB.TickOutsideBudget|Component|Shared": [
+    0,
+    2
+   ],
+   "GL.UB.TickOutsideBudget|Component|Template": [
+    0,
+    10
+   ]
+  },
+  "controls": 802,
+  "fp_assets": 0,
+  "fp_rate": 0.0,
+  "false_positives": [],
+  "wrong_rule": [],
+  "missed": [
+   {
+    "asset": "/Game/GLSeed/Shared/BP_TickingParent_0.BP_TickingParent_0",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Shared",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Shared/BP_TickingParent_1.BP_TickingParent_1",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Shared",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0009.DA_0009",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveRequired",
+    "variant": "Top",
+    "where": "RequiredCurve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0034.DA_0034",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Nested",
+    "where": "Nested.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0089.DA_0089",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Nested",
+    "where": "Nested.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0099.DA_0099",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Instanced",
+    "where": "Instanced.Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0154.DA_0154",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Instanced",
+    "where": "Instanced.Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0182.DA_0182",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Nested",
+    "where": "Nested.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0197.DA_0197",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Array",
+    "where": "List[1].Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0199.DA_0199",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Map",
+    "where": "Map[K1].Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0245.DA_0245",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveRequired",
+    "variant": "Top",
+    "where": "RequiredCurve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0293.DA_0293",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveReversal",
+    "variant": "Top",
+    "where": "CooldownByLevel"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0310.DA_0310",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Instanced",
+    "where": "Instanced.Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0315.DA_0315",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Instanced",
+    "where": "Instanced.Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0319.DA_0319",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Map",
+    "where": "Map[K1].Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0342.DA_0342",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Instanced",
+    "where": "Instanced.Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0345.DA_0345",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveRequired",
+    "variant": "Top",
+    "where": "RequiredCurve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0370.DA_0370",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Instanced",
+    "where": "Instanced.Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DA_0390.DA_0390",
+    "type": "DataAsset",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Array",
+    "where": "List[2].Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0404.DT_0404",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R09.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0412.DT_0412",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R07.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0414.DT_0414",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R15.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0437.DT_0437",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R01.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0448.DT_0448",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R17.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0458.DT_0458",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R06.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0467.DT_0467",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R11.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/DT_0496.DT_0496",
+    "type": "DataTable",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "Row",
+    "where": "R07.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0500.BPA_0500",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0503.BPA_0503",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0505.BPA_0505",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0507.BPA_0507",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0515.BPA_0515",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0523.BPA_0523",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0532.BPA_0532",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0534.BPA_0534",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0538.BPA_0538",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0539.BPA_0539",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0541.BPA_0541",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0554.BPA_0554",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0558.BPA_0558",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Inherited",
+    "where": "Ticker (from parent)"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0559.BPA_0559",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0566.BPA_0566",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0576.BPA_0576",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0580.BPA_0580",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0582.BPA_0582",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0589.BPA_0589",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Inherited",
+    "where": "Ticker (from parent)"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0596.BPA_0596",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0608.BPA_0608",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0627.BPA_0627",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0638.BPA_0638",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0649.BPA_0649",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0678.BPA_0678",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0681.BPA_0681",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0701.BPA_0701",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0723.BPA_0723",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Inherited",
+    "where": "Ticker (from parent)"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0729.BPA_0729",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0736.BPA_0736",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Inherited",
+    "where": "Ticker (from parent)"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0741.BPA_0741",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0743.BPA_0743",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0746.BPA_0746",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0749.BPA_0749",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0754.BPA_0754",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0756.BPA_0756",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0758.BPA_0758",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0761.BPA_0761",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0768.BPA_0768",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0776.BPA_0776",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0787.BPA_0787",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Inherited",
+    "where": "Ticker (from parent)"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0792.BPA_0792",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0794.BPA_0794",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "ActorTick",
+    "variant": "NativeParent",
+    "where": "PrimaryActorTick"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0795.BPA_0795",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0797.BPA_0797",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Inherited",
+    "where": "Ticker (from parent)"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0800.BPA_0800",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.Data.Curve",
+    "kind": "CurveNonFinite",
+    "variant": "BlueprintDefault",
+    "where": "Payload.Curve"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0815.BPA_0815",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Inherited",
+    "where": "Ticker (from parent)"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0830.BPA_0830",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0840.BPA_0840",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Template",
+    "where": "Client.PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPA_0848.BPA_0848",
+    "type": "ActorBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.TickOutsideBudget",
+    "kind": "Component",
+    "variant": "Template",
+    "where": "Ticker"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0854.BPC_0854",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0858.BPC_0858",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0865.BPC_0865",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0872.BPC_0872",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0882.BPC_0882",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0883.BPC_0883",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0885.BPC_0885",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0889.BPC_0889",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0890.BPC_0890",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0894.BPC_0894",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0896.BPC_0896",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0897.BPC_0897",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0900.BPC_0900",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0908.BPC_0908",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0914.BPC_0914",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0916.BPC_0916",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0917.BPC_0917",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0918.BPC_0918",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0926.BPC_0926",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0928.BPC_0928",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0935.BPC_0935",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0936.BPC_0936",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0947.BPC_0947",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0967.BPC_0967",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0969.BPC_0969",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0979.BPC_0979",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0981.BPC_0981",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientTickGroup",
+    "kind": "TickGroup",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.TickGroup"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0987.BPC_0987",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0992.BPC_0992",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0996.BPC_0996",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   },
+   {
+    "asset": "/Game/GLSeed/Assets/BPC_0998.BPC_0998",
+    "type": "ComponentBlueprint",
+    "category": "defect",
+    "rule": "GL.UB.ClientNeverTicks",
+    "kind": "StartDisabled",
+    "variant": "Subclass",
+    "where": "PrimaryComponentTick.bStartWithTickEnabled"
+   }
+  ],
+  "asset_level": {
+   "clean": [
+    0,
+    672
+   ],
+   "defect": [
+    92,
+    200
+   ],
+   "nearmiss": [
+    0,
+    130
+   ],
+   "heldout": [
+    0,
+    1
+   ],
+   "masked": [
+    7,
+    7
+   ]
+  },
+  "special": {
+   "heldout": [
+    0,
+    1
+   ],
+   "masked": [
+    0,
+    7
+   ]
+  },
+  "gap": null,
+  "check_times": {
+   "GL.Data.UnknownTag": {
+    "assets": 1003,
+    "median_ms": 0.0253,
+    "p99_ms": 0.05488600000000001
+   },
+   "GL.Data.DanglingRow": {
+    "assets": 1003,
+    "median_ms": 0.0342,
+    "p99_ms": 0.060284000000000004
+   }
+  }
+ }
+}
