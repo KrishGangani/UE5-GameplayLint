@@ -104,3 +104,7 @@ P10_GameplayLint\
 ├── Tools\           ← build, package, smoke and validate scripts; CPU mask (run and scoring scripts from S3)
 └── GameplayLint\    ← the Unreal Engine project (UE 5.8.4)
 ```
+
+## License
+
+MIT, see [LICENSE](LICENSE). Unreal Engine itself is not included and is covered by Epic Games' own license.
