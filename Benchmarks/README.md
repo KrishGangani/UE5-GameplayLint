@@ -51,5 +51,6 @@ Runs:              per combination: smallest multiple of the config count that i
 | Batch | Configs | N | Runs | Purpose | Summary |
 |---|---|---|---|---|---|
 | `2026-11-21_035120_baseline` | S, F0 | 1,000 | 4 + 4, + priming | S3 baseline, first attempt | **Invalid:** the corpus's tag files loaded no tags (`09` P5-2); the summary is kept and marked |
+| `2026-11-21_061551_s6` | F1 | 1,000 | 1 | S6 correctness: the curve rule | [summary](Summaries/2026-11-21_061551_s6_summary.md) · [score](Summaries/2026-11-21_061551_s6_score.md) |
 | `2026-11-21_050802_s5` | F1 | 1,000 | 1 | S5 correctness: the first two rules | [summary](Summaries/2026-11-21_050802_s5_summary.md) · [score](Summaries/2026-11-21_050802_s5_score.md) |
 | `2026-11-21_041526_baseline` | S, F0 | 1,000 | 4 + 4, + priming | S3 baseline: stock vs F0 equivalence, stock detection per defect class | [summary](Summaries/2026-11-21_041526_baseline_summary.md) · [score](Summaries/2026-11-21_041526_baseline_score.md) |

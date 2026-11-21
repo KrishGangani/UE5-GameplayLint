@@ -50,6 +50,19 @@ Paths are relative to `Engine/`; `EVS.cpp` is `Plugins/Editor/DataValidation/Sou
 | Using `FindRow` to test whether a row exists | A warning in the log for every missing row, and the row struct type is needed | `GetRowMap().Contains(RowName)`, or `FindRow` with `bWarnIfRowMissing = false` (`DataTable.h:219`) (`05` F2) | Grep the log for "requested row … not in DataTable" (`DataTable.cpp:1094`) |
 | A rule that loads assets in `AppliesTo` | Validation gets slow on assets the rule never reports on | `AppliesTo` reads `FAssetData` only (`06` §24) | Time `CanValidateAsset` separately |
 
+## Step S6: the curve rule (Phase 5)
+
+| Mistake | How to spot it | How to prevent it | How to debug it |
+|---|---|---|---|
+| ⚠ caught (code review): **checking only key values for NaN**. Cubic interpolation also reads the tangents, so a NaN tangent makes every value between two keys NaN | `Eval` between keys returns NaN although every key value is finite | Check time, value, both tangents and both weights (`05` F2) | Evaluate the curve at the midpoints of its keys |
+| ⚠ caught (code review): **"no keys" as the test for an empty curve**. A curve with no keys but a default value is a deliberate constant, and a NaN default value poisons every read | False alarms on constant curves; missed NaN defaults | `HasAnyData()` for "empty"; `IsFinite(DefaultValue)` for "broken" (`RealCurve.h:140–143`) | Print `GetNumKeys()` and `DefaultValue` together |
+| ⚠ caught (code review): **reporting an external curve asset's keys on every asset that points at it** | Fifty errors for one bad `UCurveFloat`, none naming it | The curve asset reports its own keys, once; the owner names the external asset in its findings | Group findings by message; identical ones across many assets point to shared data |
+| ⚠ caught (code review): **a curve asset or curve table that no rule checks**, because their curves are not `FRuntimeFloatCurve` properties | A NaN typed into a shared curve asset is never reported on it | Check `UCurveFloat::FloatCurve` and every `UCurveTable` row directly | Validate the curve asset alone |
+| ⚠ caught (code review): **guessing the meaning of a misspelt annotation** (`LintMonotonic="Descending"` was read as "Increasing") | Correct curves flagged, broken ones passed | Accept the two documented values; report anything else | Grep the project for `LintMonotonic=` and compare the values |
+| ⚠ caught (code review): **two findings for one defect** (an infinite key also counted as a reversal) | Counts per defect above 1 in the score | Stop after the non-finite finding; check the direction on finite data only | The score's per-cell counts |
+| A word inserted into a localised message with `FText::FromString` | Translations show one English word in a translated sentence | One complete `LOCTEXT` message per case | Run the editor with a test culture |
+| ⚠ caught (S6, before the build): **a fixture change that breaks an older test**. Adding a second `LintMonotonic` curve broke the S4 walker test, which counted exactly one | The test name says "exactly one" | After a fixture change, grep the tests for the changed field's annotation | Run the whole `GameplayLint` test filter, not only the new test |
+
 ## Data Validation: pitfalls found in Phase 2 (designed against)
 
 | Mistake | How to spot it | How to prevent it | How to debug it |

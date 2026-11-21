@@ -1,0 +1,86 @@
+{
+ "batch": "2026-11-21_061551_s6",
+ "configs": [
+  "F1"
+ ],
+ "runs_per_config": 1,
+ "all_assets": false,
+ "changes": null,
+ "environment": {
+  "date": "2026-11-21T06:15:51",
+  "engine": "5.8.4 (CL 58902052)",
+  "build_config": "Development editor, UnrealEditor-Cmd.exe in commandlet mode",
+  "compiler": "MSVC 14.44.35229, Windows SDK 10.0.22621.0",
+  "cpu": "Intel(R) Core(TM) i7-14650HX",
+  "ram_gb": "31.6",
+  "os": "Microsoft Windows 11 Home Single Language build 26200",
+  "power_plan": "Power Scheme GUID: 6fecc5ae-f350-48a5-b669-b472cb895ccf  (Turbo)",
+  "on_ac_power": true,
+  "cpu_affinity": "0xFFFF (performance cores only; hybrid CPU)",
+  "common_args": [
+   "-unattended",
+   "-nullrhi",
+   "-nosplash",
+   "-traceautostart=0",
+   "-BUILDMACHINE",
+   "-stdout",
+   "-FullStdOutLogOutput"
+  ]
+ },
+ "corpus": {
+  "assets": 1000,
+  "seed": 1,
+  "sha256": "11fdc0bea9a7fe60ed0a629ee915a320063ab5cf47097c2f7e40c07b5485b258",
+  "ground_truth": "2026-11-21_061551_s6_groundtruth.json"
+ },
+ "runs": [
+  {
+   "name": "2026-11-21_061551_s6_F1_N1000_r1",
+   "config": "F1",
+   "command": [
+    "C:\\Program Files\\Epic Games\\UE_5.8\\Engine\\Binaries\\Win64\\UnrealEditor-Cmd.exe",
+    "D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\GameplayLint\\GameplayLint.uproject",
+    "-run=GameplayLint",
+    "-Report=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_061551_s6_F1_N1000_r1.json",
+    "-GameplayLintRules=All",
+    "-Paths=/Game/GLSeed",
+    "-unattended",
+    "-nullrhi",
+    "-nosplash",
+    "-traceautostart=0",
+    "-BUILDMACHINE",
+    "-stdout",
+    "-FullStdOutLogOutput",
+    "-abslog=D:\\UNREAL PORTFOLIO\\P10_GameplayLint\\Benchmarks\\Raw\\2026-11-21_061551_s6_F1_N1000_r1.log"
+   ],
+   "exit_code": 3,
+   "wall_seconds": 9.503,
+   "result_lines": {
+    "valid": 878,
+    "valid_with_warnings": 0,
+    "invalid": 132,
+    "not_validated": 0
+   },
+   "commandlet_seconds": 1.44,
+   "zen_retry": false,
+   "permanent_tag_warnings": 0,
+   "ok": true,
+   "times_s": {
+    "process_start_to_main": 7.283505700528622,
+    "main_to_validate": 0.16394779831171036,
+    "validate": 1.2441587001085281
+   },
+   "counts": {
+    "requested": 1010,
+    "checked": 1010,
+    "valid": 878,
+    "invalid": 132,
+    "warnings": 35,
+    "skipped": 0,
+    "unable": 0
+   },
+   "findings": 125,
+   "dependents": {}
+  }
+ ]
+}

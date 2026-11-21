@@ -208,6 +208,14 @@
 6. **Common mistakes.** NaN or infinite keys from a bad import; a curve whose user expects it to rise but which falls; ignoring `ExternalCurve` when checking keys.
 7. **Example.** `Curve.EditorCurveData.AddKey(1.f, 2.f);`
 8. **In this project.** The seeder writes NaN and infinite keys, reversals and empty curves. S6's rule reads keys through `GetRichCurveConst()`.
+9. **Added in S6.**
+   - `FRealCurve::DefaultValue` (`RealCurve.h:226`) is what an empty curve returns. `HasAnyData()` (`:140–143`) means "a key, or a default value other than `MAX_flt`".
+   - `FRichCurveKey` carries `ArriveTangent`, `LeaveTangent` and their weights (`RichCurve.h:106–118`). Cubic interpolation reads them, so a NaN tangent poisons the values between keys.
+   - `FRichCurve::GetKey(Handle)` (`:215`) returns a key by the handle `AddKey` gave.
+   - `FSimpleCurve` has keys with only `Time` and `Value` (`SimpleCurve.h:11–21`, `GetConstRefOfKeys` `:85`).
+   - `UCurveFloat::FloatCurve` (`CurveFloat.h:36`) is a curve asset's own data.
+   - A `UCurveTable` holds either rich or simple rows: `GetCurveTableMode()`, `GetRichCurveRowMap()`, `GetSimpleCurveRowMap()` (`CurveTable.h:51–57`).
+   - `FMath::IsFinite` (`GenericPlatformMath.h:583`) is false for NaN and both infinities.
 
 ## 11. `FInstancedStruct` and `TSoftObjectPtr`
 

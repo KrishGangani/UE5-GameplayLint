@@ -1,4 +1,4 @@
-// GameplayLintDataRules - the generic relation rules: tags and row handles (02 section 4.2).
+// GameplayLintDataRules - the generic relation rules: tags, row handles, curves (02 section 4.2).
 // The engine finds these classes by reflection; nothing includes this header except its own .cpp.
 
 #pragma once
@@ -31,6 +31,24 @@ class UGLRule_DanglingRow : public UGameplayLintRule
 
 public:
 	UGLRule_DanglingRow();
+
+protected:
+	virtual bool AppliesTo(const FAssetData& AssetData) const override;
+	virtual void CheckAsset(UObject* Asset, FGameplayLintContext& Lint) const override;
+};
+
+/**
+ * GL.Data.Curve: non-finite curve data (keys, tangents, default value) in a curve property, a curve asset or a curve
+ * table row (always); a reversal where the property says LintMonotonic="Increasing" or "Decreasing"; no data at
+ * all where the property says LintRequired. An external curve's keys are reported on the curve asset, once.
+ */
+UCLASS()
+class UGLRule_Curve : public UGameplayLintRule
+{
+	GENERATED_BODY()
+
+public:
+	UGLRule_Curve();
 
 protected:
 	virtual bool AppliesTo(const FAssetData& AssetData) const override;

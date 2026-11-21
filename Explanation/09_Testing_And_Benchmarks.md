@@ -189,8 +189,39 @@ un_scan.py --configs S,F0 --all-assets --label baseline` (pinned to `0xFFFF`; on
 
 ---
 
-## Steps S6–S8 and Phases 7–8 (to be written)
+## Phase 5 · Step S6: `GL.Data.Curve` (2026-11-21)
 
-- S6–S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
+| # | Check | Command / job | Result |
+|---|---|---|---|
+| P5-5 | Build, tests, F1 run | job `20261121_051420_2cf657`: `build.bat` editor + game, `run_tests.bat`, `run_scan.py --configs F1 --runs 1 --no-prime --label s6` | ✅ Exit 0. Builds: editor 11.4 s, game 15.1 s (the fixture module changed: a new `FalloffByDistance` curve), **0 errors, 0 warnings**. **Tests ✅ 7/7**: the new `GameplayLint.Rules.Curve` with 15 cases, and `Walker.Metadata`, updated for the second `LintMonotonic` curve. F1 run: exit 3, 9.5 s |
+
+**F1 correctness at N = 1,000** (batch `2026-11-21_061551_s6`, one run):
+
+| Rule | Seeded defects | Found at rule level | Cells | False positives |
+|---|---|---|---|---|
+| `GL.Data.Curve` | 33 | **33 (100 %)** | 8 cells, all 100 %: non-finite keys in every variant (array, map, nested, instanced, Blueprint default, DataTable row), empty required curves, a reversal | 0 |
+| `GL.Data.UnknownTag`, `GL.Data.DanglingRow` | 92 | 92 (100 %), unchanged | | 0 |
+| **The data rules together** | **125** | **125 (100 %)** | | **0 of 802 controls** |
+
+- **Near-misses:** 0 of 130 flagged, including the flat curve and the curve that rises without falling.
+- **Wrong-rule findings:** 0.
+- **Rule time per asset:** Curve median 0.012 ms, p99 0.030 ms (1,003 assets).
+- The `GL.UB.*` defects (75) wait for S7.
+
+**Audit trail for S6:**
+- **`code-review` (medium):** 9 findings, all fixed before the build.
+  - **Missing coverage:** curve assets (`UCurveFloat`) and curve-table rows were never checked; NaN tangents passed; the default value was ignored in both directions (a constant curve was flagged as empty, a NaN default passed); a required curve pointing at an empty external curve passed.
+  - **Over-reporting:** an external curve's keys were reported on every asset that uses it, without naming it; an infinite key in a must-rise curve gave two findings.
+  - **Guessing:** an unknown `LintMonotonic` value was read as "Increasing".
+  - **Tests and wording:** the "Decreasing", external and NaN-time branches had no test; one word of a message was not localisable.
+  - **The fixes, in the rule (`05` F2):** one templated check for rich and simple keys; the curve asset owns its keys; `HasAnyData` decides "empty"; an unknown annotation is reported; two complete messages. A fixture curve with `LintMonotonic="Decreasing"` was added for the test.
+- **`simplify`** (by myself): one generic lambda instead of two copies of the curve-table row loop. Nothing to reuse elsewhere; no efficiency or altitude finding.
+- **Caught before the build:** the new fixture curve would have failed the S4 `Walker.Metadata` test, which counted exactly one annotated curve. Fixed in the same step (`07`).
+
+---
+
+## Steps S7–S8 and Phases 7–8 (to be written)
+
+- S7–S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
 - Functional, edge-case and stability tests (Phase 7), including the on-save half of H3.
 - The full benchmark protocol and the SC1–SC7, E1–E2 results (Phase 8).

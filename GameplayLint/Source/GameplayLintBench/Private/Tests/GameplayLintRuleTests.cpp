@@ -8,6 +8,7 @@
 
 #if WITH_DEV_AUTOMATION_TESTS
 
+#include "Curves/CurveFloat.h"
 #include "EditorValidatorBase.h"
 #include "Engine/CurveTable.h"
 #include "Engine/DataTable.h"
@@ -16,6 +17,8 @@
 #include "GLTestHelpers.h"
 #include "Misc/DataValidation.h"
 #include "UObject/Package.h"
+
+#include <limits>
 
 namespace GameplayLintRuleTests
 {
@@ -166,6 +169,102 @@ bool FGameplayLintDanglingRowTest::RunTest(const FString& Parameters)
 	Expect(*this, *Rule, Id, TEXT("required handle with a table but no row"),
 		[&](UGLFixtureDataAsset& Asset) { Asset.RequiredRow.DataTable = Table; },
 		{ TEXT("names no row") });
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FGameplayLintCurveTest, "GameplayLint.Rules.Curve", GameplayLintRuleTests::Flags)
+bool FGameplayLintCurveTest::RunTest(const FString& Parameters)
+{
+	using namespace GameplayLintRuleTests;
+	UEditorValidatorBase* Rule = NewRule(*this, TEXT("/Script/GameplayLintDataRules.GLRule_Curve"));
+	if (!Rule)
+	{
+		return false;
+	}
+	const TCHAR* Id = TEXT("[GL.Data.Curve]");
+	const float NaN = std::numeric_limits<float>::quiet_NaN();
+	const float Infinity = std::numeric_limits<float>::infinity();
+
+	// Every data-asset case starts valid: the required curve has a key.
+	auto Valid = [](UGLFixtureDataAsset& Asset) { Asset.RequiredCurve.EditorCurveData.AddKey(0.f, 1.f); };
+
+	Expect(*this, *Rule, Id, TEXT("rising cooldown with a flat segment, falling fall-off (the near-misses)"),
+		[&](UGLFixtureDataAsset& Asset)
+		{
+			Valid(Asset);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(1.f, 1.f);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(2.f, 2.f);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(3.f, 2.f);
+			Asset.FalloffByDistance.EditorCurveData.AddKey(0.f, 10.f);
+			Asset.FalloffByDistance.EditorCurveData.AddKey(100.f, 0.f);
+		},
+		{});
+	Expect(*this, *Rule, Id, TEXT("NaN key value in an unannotated curve"),
+		[&](UGLFixtureDataAsset& Asset) { Valid(Asset); Asset.Curve.EditorCurveData.AddKey(0.f, NaN); },
+		{ TEXT("not a finite number") });
+	Expect(*this, *Rule, Id, TEXT("NaN key time"),
+		[&](UGLFixtureDataAsset& Asset) { Valid(Asset); Asset.Curve.EditorCurveData.AddKey(NaN, 1.f); },
+		{ TEXT("not a finite number") });
+	Expect(*this, *Rule, Id, TEXT("NaN tangent"),
+		[&](UGLFixtureDataAsset& Asset)
+		{
+			Valid(Asset);
+			const FKeyHandle Key = Asset.Curve.EditorCurveData.AddKey(0.f, 0.f);
+			Asset.Curve.EditorCurveData.AddKey(1.f, 1.f);
+			Asset.Curve.EditorCurveData.GetKey(Key).LeaveTangent = NaN;
+		},
+		{ TEXT("tangent") });
+	Expect(*this, *Rule, Id, TEXT("infinite key in a nested payload"),
+		[&](UGLFixtureDataAsset& Asset) { Valid(Asset); Asset.Nested.Curve.EditorCurveData.AddKey(0.f, Infinity); },
+		{ TEXT("Nested") });
+	Expect(*this, *Rule, Id, TEXT("infinite key in a curve that must rise: one finding, not two"),
+		[&](UGLFixtureDataAsset& Asset)
+		{
+			Valid(Asset);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(1.f, 1.f);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(2.f, Infinity);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(3.f, 2.f);
+		},
+		{ TEXT("not a finite number") });
+	Expect(*this, *Rule, Id, TEXT("reversal in a curve that must rise"),
+		[&](UGLFixtureDataAsset& Asset)
+		{
+			Valid(Asset);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(1.f, 3.f);
+			Asset.CooldownByLevel.EditorCurveData.AddKey(2.f, 1.f);
+		},
+		{ TEXT("must not fall") });
+	Expect(*this, *Rule, Id, TEXT("rise in a curve that must fall"),
+		[&](UGLFixtureDataAsset& Asset)
+		{
+			Valid(Asset);
+			Asset.FalloffByDistance.EditorCurveData.AddKey(0.f, 1.f);
+			Asset.FalloffByDistance.EditorCurveData.AddKey(100.f, 5.f);
+		},
+		{ TEXT("must not rise") });
+	Expect(*this, *Rule, Id, TEXT("empty required curve"),
+		[](UGLFixtureDataAsset&) {},
+		{ TEXT("required curve has no keys") });
+	Expect(*this, *Rule, Id, TEXT("required curve with only a default value: it has data"),
+		[](UGLFixtureDataAsset& Asset) { Asset.RequiredCurve.EditorCurveData.DefaultValue = 5.f; },
+		{});
+
+	// External curves: the keys belong to the curve asset, which reports its own non-finite data once.
+	UCurveFloat* Empty = NewObject<UCurveFloat>(GetTransientPackage());
+	UCurveFloat* Broken = NewObject<UCurveFloat>(GetTransientPackage());
+	Broken->FloatCurve.AddKey(0.f, NaN);
+	Expect(*this, *Rule, Id, TEXT("required curve pointing at an empty curve asset"),
+		[Empty](UGLFixtureDataAsset& Asset) { Asset.RequiredCurve.ExternalCurve = Empty; },
+		{ TEXT("external curve") });
+	Expect(*this, *Rule, Id, TEXT("curve pointing at a broken curve asset: reported on that asset, not here"),
+		[&](UGLFixtureDataAsset& Asset) { Valid(Asset); Asset.Curve.ExternalCurve = Broken; },
+		{});
+	ExpectOn(*this, *Rule, Id, TEXT("the broken curve asset itself"), Broken, { TEXT("FloatCurve") });
+
+	UCurveTable* Table = NewObject<UCurveTable>(GetTransientPackage());
+	Table->AddRichCurve(TEXT("C00")).AddKey(0.f, 1.f);
+	Table->AddRichCurve(TEXT("C01")).AddKey(0.f, Infinity);
+	ExpectOn(*this, *Rule, Id, TEXT("curve table with an infinite row"), Table, { TEXT("Row[C01]") });
 	return true;
 }
 

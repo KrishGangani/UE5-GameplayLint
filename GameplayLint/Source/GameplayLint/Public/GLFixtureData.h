@@ -109,6 +109,10 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Fixture", meta = (LintMonotonic = "Increasing"))
 	FRuntimeFloatCurve CooldownByLevel;
 
+	/** A curve that must not rise: the Decreasing case of GL.Data.Curve (tests only; the corpus leaves it empty). */
+	UPROPERTY(EditAnywhere, Category = "Fixture", meta = (LintMonotonic = "Decreasing"))
+	FRuntimeFloatCurve FalloffByDistance;
+
 	/** A damage fall-off curve with no keys would deal the default value at every distance. */
 	UPROPERTY(EditAnywhere, Category = "Fixture", meta = (LintRequired))
 	FRuntimeFloatCurve RequiredCurve;

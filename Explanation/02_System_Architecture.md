@@ -126,7 +126,7 @@ protected:
 |---|---|---|---|---|
 | `GL.Data.UnknownTag` | `UGLRule_UnknownTag` | any asset | An `FGameplayTag`, or a tag in an `FGameplayTagContainer`, whose name is not in the dictionary (`RequestGameplayTag(Name, false)` fails, `01b` §3) | If a tag config file changed: every package whose searchable-name dependencies hold an `FGameplayTag` value that is no longer in the dictionary / every package with any tag reference |
 | `GL.Data.DanglingRow` | `UGLRule_DanglingRow` | any asset | `FDataTableRowHandle` and `FCurveTableRowHandle`: table set but row missing; row set but table null; row None where the property has `meta=(LintRequired)` | For each changed or deleted table: its package referencers whose searchable-name rows are no longer in the table / every package referencer of the table |
-| `GL.Data.Curve` | `UGLRule_Curve` | any asset | `FRuntimeFloatCurve` (and `UCurveFloat` assets): a NaN or infinite key, always; with `meta=(LintMonotonic="Increasing"\|"Decreasing")`, a reversal; with `meta=(LintRequired)`, no keys and no external curve | Changed `UCurveFloat` assets: their package referencers (both modes) |
+| `GL.Data.Curve` | `UGLRule_Curve` | any asset | Non-finite curve data (key time or value, tangents, the default value an empty curve returns) in an `FRuntimeFloatCurve` property, a `UCurveFloat` asset or a `UCurveTable` row, always; a reversal where the property says `LintMonotonic="Increasing"` or `"Decreasing"` (an unknown value is reported, never guessed); no data at all (no key, no default value) where it says `LintRequired`. An external curve's keys are reported once, on the curve asset; the property's contracts are checked on its owner, naming the external asset (S6 code review) |
 
 Annotations are UPROPERTY metadata, read in editor builds only (`01b` §3). A programmer writes the meaning where the data is declared:
 
@@ -158,7 +158,7 @@ Dependents (all three): when an actor Blueprint changes, the Blueprints that der
 
 | Type | Base | Why |
 |---|---|---|
-| `UGLFixtureDataAsset` | `UPrimaryDataAsset` | Holds every structural variant: top-level tag, container, row handles (one `LintRequired`), curves (one `LintMonotonic`, one `LintRequired`), a nested payload, `TArray` and `TMap` of payloads, an instanced object, an `FInstancedStruct` payload, and a project-style two-field reference (`LootTable` + `LootRow`, the held-out kind) |
+| `UGLFixtureDataAsset` | `UPrimaryDataAsset` | Holds every structural variant: top-level tag, container, row handles (one `LintRequired`), curves (`LintMonotonic` "Increasing" and, since S6, "Decreasing"; one `LintRequired`), a nested payload, `TArray` and `TMap` of payloads, an instanced object, an `FInstancedStruct` payload, and a project-style two-field reference (`LootTable` + `LootRow`, the held-out kind) |
 | `FGLFixturePayload` | `USTRUCT` | A tag, a row handle and a curve, reused at every nesting level |
 | `FGLFixtureRow` | `FTableRowBase` | DataTable rows that themselves hold tags, handles and curves |
 | `UGLFixtureInstanced` | `UObject` (`EditInlineNew, DefaultToInstanced`) | The instanced sub-object variant |

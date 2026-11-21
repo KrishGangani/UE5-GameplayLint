@@ -108,8 +108,9 @@ bool FGameplayLintWalkerMetadataTest::RunTest(const FString& Parameters)
 			Required.Add(Value.Path);
 		}
 	});
-	TestEqual(TEXT("exactly one LintMonotonic curve"), Monotonic.Num(), 1);
-	TestEqual(TEXT("it is CooldownByLevel, increasing"), Monotonic.FindRef(TEXT("CooldownByLevel")), FString(TEXT("Increasing")));
+	TestEqual(TEXT("exactly two LintMonotonic curves"), Monotonic.Num(), 2);
+	TestEqual(TEXT("CooldownByLevel is increasing"), Monotonic.FindRef(TEXT("CooldownByLevel")), FString(TEXT("Increasing")));
+	TestEqual(TEXT("FalloffByDistance is decreasing (added in S6)"), Monotonic.FindRef(TEXT("FalloffByDistance")), FString(TEXT("Decreasing")));
 	TestEqual(TEXT("exactly one LintRequired curve"), Required.Num(), 1);
 	TestTrue(TEXT("it is RequiredCurve"), Required.Num() == 1 && Required[0] == TEXT("RequiredCurve"));
 	return true;

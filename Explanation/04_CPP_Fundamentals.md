@@ -1,6 +1,6 @@
 # 04 · C++ Fundamentals: GameplayLint
 
-**Rule:** only the C++ (and C#) ideas this project's code actually relies on, each with a tiny example first and then where it appears in our code. This file grows with every step: sections 1–4 came with Phase 4, sections 5–12 with steps S1–S4 (fixtures, seeder, core, walker).
+**Rule:** only the C++ (and C#) ideas this project's code actually relies on, each with a tiny example first and then where it appears in our code. This file grows with every step: sections 1–4 came with Phase 4, sections 5–12 with steps S1–S4 (fixtures, seeder, core, walker), section 13 with S6.
 
 ---
 
@@ -143,3 +143,20 @@ virtual void SetupValidationSettings(FValidateAssetsSettings& Settings) override
 
 - `std::initializer_list<T>` lets a function take a brace list of values. The seeder writes each curve's keys in place this way.
 - A **forward declaration** tells the compiler a type exists without its definition. Using it by reference or pointer then needs no `#include`. The commandlet header forward-declares the two validation structs, so files that include it don't pull in the whole validation subsystem header. Only the `.cpp`, which uses their fields, includes it.
+
+## 13. Function templates, overloading and generic lambdas (S6)
+
+```cpp
+bool IsFiniteKey(const FRichCurveKey& Key);     // two functions with one name: the argument type picks one
+bool IsFiniteKey(const FSimpleCurveKey& Key);
+
+template <typename KeyType>                     // one body, compiled once per key type it is used with
+void CheckCurveData(const TArray<KeyType>& Keys, ...) { ... IsFiniteKey(Keys[0]) ... }
+
+auto CheckRows = [&Lint](const auto& Rows) { ... };   // a generic lambda: a template written in place
+```
+
+- **Overloading:** several functions share a name; the compiler picks the one whose parameter types match the call.
+- **A function template** is a pattern. The compiler writes a real function for each type it is called with (`TArray<FRichCurveKey>`, `TArray<FSimpleCurveKey>`), and inside it the overload that fits that type is chosen.
+- **A lambda with an `auto` parameter** is the same idea, written in place.
+- **In our code:** `GL.Data.Curve` checks rich curves (with tangents) and simple curves (time and value only) with one body (`05` F2).
