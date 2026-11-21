@@ -33,3 +33,6 @@ GameplayLint/Config/Tags/GLSeed*.ini
 
 # Work-in-progress drafts (brief section 2 rule 11): parked here, never committed.
 _wip/
+
+# Portfolio deliverables (images, video, description) for Google Drive: kept out of git.
+Portfolio/
