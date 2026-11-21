@@ -63,6 +63,17 @@ Paths are relative to `Engine/`; `EVS.cpp` is `Plugins/Editor/DataValidation/Sou
 | A word inserted into a localised message with `FText::FromString` | Translations show one English word in a translated sentence | One complete `LOCTEXT` message per case | Run the editor with a test culture |
 | ⚠ caught (S6, before the build): **a fixture change that breaks an older test**. Adding a second `LintMonotonic` curve broke the S4 walker test, which counted exactly one | The test name says "exactly one" | After a fixture change, grep the tests for the changed field's annotation | Run the whole `GameplayLint` test filter, not only the new test |
 
+## Step S7: the UpdateBudget pack (Phase 5)
+
+| Mistake | How to spot it | How to prevent it | How to debug it |
+|---|---|---|---|
+| ⚠ caught (S7, first test run): **a UObject kept only in a raw C++ pointer across a Blueprint compile.** The compile ends with a garbage collection (`BlueprintCompilationManager.cpp:423–427`), so the test's rule objects were freed, and the next `ValidateLoadedAsset` crashed with an access violation (queue job `20261121_062431_018fb5`) | A crash inside engine code, with your function one frame below; an address like `0xffffffffffffffff` | Hold such objects with `TStrongObjectPtr` (or a `UPROPERTY` of a referenced object) whenever any call in between can collect garbage | The call stack names your caller; ask whether anything between creation and use can collect garbage |
+| ⚠ caught (code review): **"never ticks" decided from `bStartWithTickEnabled` alone**. An auto-activating component's tick is enabled by `Activate`, so the first version called a ticking client broken (an Error) and missed per-frame tickers | A rule's verdict disagrees with what the component does in a running game | One shared `StartsTicking` that includes `bAutoActivate` (`06` §25) | Spawn the actor in a test world and read `IsComponentTickEnabled()` |
+| ⚠ caught (code review): **one misconfigured client reported by two rules** (wrong group *and* never ticks) | Two findings for one seeded defect | A rule skips what another rule owns: the group is not compared for a client that never ticks | The score's wrong-rule count |
+| ⚠ caught (code review): **resolving settings paths in the innermost loop** | Rule time grows with templates × paths × rules | Resolve once per checked asset (`FClasses`) | `check_times_ms` per rule |
+| Expecting `+Array=` in `DefaultEditor.ini` to *add to* the constructor's defaults | Default entries (here UE5-UpdateBudget's own client class) disappear | A config array with entries replaces the constructor's list (`ProcessArrayProperty`, `EmptyAndAddValues`); repeat the defaults in the ini if they must stay | Print the settings object after start-up |
+| A rule pack that includes another module's private headers, or a test that needs them | Build errors as soon as the other module moves code; hidden coupling | Name classes by path (`FSoftClassPath`); tests find rule classes by path too (`05` F4) | `grep -r "Private/" *.Build.cs` |
+
 ## Data Validation: pitfalls found in Phase 2 (designed against)
 
 | Mistake | How to spot it | How to prevent it | How to debug it |

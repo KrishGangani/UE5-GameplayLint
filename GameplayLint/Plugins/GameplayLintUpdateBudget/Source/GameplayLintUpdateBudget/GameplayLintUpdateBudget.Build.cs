@@ -9,6 +9,8 @@ public class GameplayLintUpdateBudget : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "GameplayLintCore" });
+		// DataValidation: every module that defines a rule links the validator base itself (the link rule, 02 section 3).
+		// DeveloperSettings: the pack's settings class.
+		PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "DataValidation", "DeveloperSettings", "GameplayLintCore" });
 	}
 }

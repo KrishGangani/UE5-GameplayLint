@@ -10,6 +10,7 @@
 | D | S3 (harness) | `GameplayLintTypes.h`, `GameplayLintSettings.h/.cpp`, `GameplayLintReportSubsystem.h/.cpp`, `GameplayLintCommandlet.h/.cpp`, core `Build.cs`, `Tools\run_scan.py`, `Tools\score.py` |
 | E | S4 (rule base, walker, tests) | `GameplayLintRule.h/.cpp`, `GameplayLintWalker.h/.cpp`, `Tests\GLTestRule.h`, `Tests\GameplayLintCoreTests.cpp`, `Tools\run_tests.bat` |
 | F | S5–S6 (data rules) | `GLDataRules.h/.cpp`, the pack's `Build.cs` and `.uplugin`, `Tests\GameplayLintRuleTests.cpp`, `Tests\GLTestHelpers.h` |
+| G | S7 (UpdateBudget pack) | `GLUpdateBudgetRules.h/.cpp`, the pack's `Build.cs` and `.uplugin`, `Config\DefaultEditor.ini`, the UpdateBudget test |
 
 ---
 
@@ -501,9 +502,56 @@ The first rule code. Everything here is in the `GameplayLintDataRules` pack; the
 | Part | Why |
 |---|---|
 | `GLTestHelpers.h`: `Flags`, `MakeTag` | Shared by both test files of the module (the simplify pass in S5 found the second copy). `inline` so that one header can define them in several `.cpp` files |
-| `NewRule(Test, ClassPath)`: `FindObject<UClass>(nullptr, TEXT("/Script/GameplayLintDataRules.GLRule_UnknownTag"))` | The packs have no public headers, so the tests find a rule class by its path, as the engine does. A null outer means "the name starts with a package" (`UObjectGlobals.h`, `StaticFindObject`) |
+| `NewRule(Test, ClassPath)`: `FindObject<UClass>(nullptr, TEXT("/Script/GameplayLintDataRules.GLRule_UnknownTag"))`, returned as a `TStrongObjectPtr` (since S7) | The packs have no public headers, so the tests find a rule class by its path, as the engine does. The rule object is rooted, and so are the tables and curve assets reused across cases: compiling a Blueprint collects garbage (`BlueprintCompilationManager.cpp:423–427`), and the first S7 run crashed because it freed an unrooted rule (`07`). A null outer means "the name starts with a package" (`UObjectGlobals.h`, `StaticFindObject`) |
 | `Validate(Rule, Asset, OutResult)` | The engine's own entry point, `UEditorValidatorBase::ValidateLoadedAsset`, with a fresh `FDataValidationContext`; returns every message text |
 | `Expect(Test, Rule, RuleId, Case, Setup, Expected)` | One case: a new in-memory data asset, `Setup` changes it, then the exact number of findings, the result (Invalid exactly when a finding is expected), a substring per expected finding, and the rule ID in every message |
 | `GameplayLint.Rules.UnknownTag` | No tags: valid. **A declared tag** (the first one `RequestAllGameplayTags` returns), single and in a container: valid. Without this case, a rule that flagged every tag would pass (code review, S5); if the dictionary is empty, the case is skipped and the test says so. An unknown top-level tag. An unknown tag in a container and in an array element (the path names `List[0]`) |
 | `GameplayLint.Rules.Curve` (S6) | Near-misses (a rising cooldown with a flat segment, a falling fall-off); NaN value, NaN time, NaN tangent, infinite key in a nested payload; an infinite key in a must-rise curve gives **one** finding; a fall in a must-rise curve and a rise in a must-fall curve; an empty required curve; a required curve with only a default value (valid); a required curve pointing at an empty curve asset; a curve pointing at a broken curve asset (nothing on the owner), and that asset itself (a finding); a curve table with an infinite row |
 | `GameplayLint.Rules.DanglingRow` | An in-memory DataTable (`R00`) and CurveTable (`C00`), **unnamed**, so a second run in the same editor session gets fresh objects. Valid handles; a missing DataTable row; a missing CurveTable row; a row without a table in a nested payload; an empty required handle; a required handle with a table but no row |
+
+---
+
+## Part G · The UpdateBudget pack (S7)
+
+A second rule pack, built against the core's public API only. **E1:** the S7 commit changes 0 lines under `Plugins/GameplayLintCore/` (`09` P5-6).
+
+### G1. `Private\GLUpdateBudgetRules.h`
+
+| Part | Why |
+|---|---|
+| `UCLASS(config = Editor, defaultconfig, meta = (DisplayName = "Gameplay Lint: UpdateBudget")) UGameplayLintUpdateBudgetSettings : UDeveloperSettings` | The pack's own Project Settings page (`06` §16). The core knows nothing about it |
+| `TArray<FSoftClassPath> BudgetClientClasses`, `BudgetScopeActorClasses`, `PerFrameAllowList` (`MetaClass` filters the class picker) | The pack never links UE5-UpdateBudget's code: classes are named by path and resolved only if loaded (`06` §26) |
+| `TEnumAsByte<ETickingGroup> SchedulerTickGroup = TG_PrePhysics` | Where UE5-UpdateBudget's scheduler ticks; clients must tick in the same group |
+| Three `UCLASS() UGLRule_*` classes | Same shape as the data rules (`05` F1) |
+
+### G2. `Private\GLUpdateBudgetRules.cpp`
+
+| Part | Why |
+|---|---|
+| `GLUpdateBudget::FClasses` | Resolves the three class lists **once per checked asset** (S7 code review: before, every template of every asset resolved every path in every rule) and answers `IsClient`, `IsInScope`, `IsAllowListed` with `IsChildOf` |
+| `StartsTicking(Component)` | `bCanEverTick && (bStartWithTickEnabled \|\| bAutoActivate)`. The tick manager enables a tick that starts enabled (`ActorComponent.cpp:1739–1752`); `InitializeComponents` activates every auto-activating component (`Actor.cpp:6399`), and `Activate` enables its tick (`ActorComponent.cpp:2815–2819`) |
+| `TicksEveryFrame(Component)`, `TicksEveryFrame(Actor)` | Starts ticking and has no `TickInterval`. The actor's own tick has no auto-activation |
+| `NativeParent(AssetData)` | `UBlueprint::GetBlueprintParentClassFromAssetTags` (`Blueprint.cpp:2316–2333`): the native parent from registry tags, so `AppliesTo` loads nothing |
+| `Templates(ActorClass)` | `AActor::ForEachComponentOfActorClassDefault`: native, added and inherited templates, with child overrides (`06` §21) |
+| `ComponentPath` | `Component[Name]`, without the `_GEN_VARIABLE` suffix of Blueprint templates |
+| `ForEachClient` | The client templates of an actor Blueprint, or the defaults of a Blueprint subclass of a client (`Default`) |
+| **TickOutsideBudget** | In scope: a configured actor class, or an actor that already has a client (it opted in). Then the actor's own tick and every template that is neither a client nor allow-listed |
+| **ClientTickGroup** | Only for clients that start ticking; the group is compared with `TickGroup.GetValue()` (a `TEnumAsByte`) and named with `StaticEnum<ETickingGroup>()->GetDisplayNameTextByValue` |
+| **ClientNeverTicks** | `!StartsTicking(Client)`; two complete messages, one for `bCanEverTick` false, one for "starts disabled and does not auto-activate" |
+
+### G3. `Build.cs`, `.uplugin` and `Config\DefaultEditor.ini`
+
+| Part | Why |
+|---|---|
+| `DataValidation`, `DeveloperSettings` in the private dependencies; the `DataValidation` plugin in the `.uplugin` | The link rule (`02` §3), and the settings base class |
+| `DefaultEditor.ini`: `+BudgetClientClasses=/Script/GameplayLint.GLFixtureBudgetClient`, `+BudgetScopeActorClasses=/Script/GameplayLint.GLFixtureAgent` | Points the pack at the fixture classes. A config array with entries replaces the constructor's list (`Obj.cpp`, `ProcessArrayProperty`: `EmptyAndAddValues`), so the client list is only the fixture client; the allow list keeps its defaults. Here `+` is right: `DefaultEditor.ini` is a layered file (`04` §4) |
+
+### G4. `GameplayLint.Rules.UpdateBudget` (in `GameplayLintRuleTests.cpp`)
+
+| Part | Why |
+|---|---|
+| `MakeBlueprint(Parent, Name, AddComponents, SetDefaults)` | An in-memory Blueprint with a unique name: templates are set before the compile, class defaults after it |
+| TickOutsideBudget cases | Near-misses: an interval ticker, a start-disabled ticker, allow-listed skeletal mesh and projectile movement. Findings: a per-frame ticker, a start-disabled ticker that auto-activates, a ticking native parent. Scope: a plain actor is out of scope, unless it opted in with a client |
+| ClientTickGroup cases | A client in the right group; a client template in `TG_DuringPhysics`; a client subclass whose defaults are in `TG_PostPhysics`; a never-ticking client in another group, which is reported only by ClientNeverTicks |
+| ClientNeverTicks cases | A start-disabled template; start-disabled subclass defaults; a start-disabled client that auto-activates (no finding); a ticking client |
+| Depends on the project's config | The settings class is private to the pack. The test runs against the checked-in `DefaultEditor.ini`, and changing that file is meant to fail the test |

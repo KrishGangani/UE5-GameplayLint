@@ -31,6 +31,9 @@
 | 22 | Automation tests: `IMPLEMENT_SIMPLE_AUTOMATION_TEST` | S4 |
 | 23 | Small utilities: `TOptional`, `TFunctionRef`, `StaticEnum`, `LOCTEXT`/`NSLOCTEXT`/`INVTEXT`, `FPlatformTime::Cycles64` | S1–S4 |
 | 24 | `FAssetData` (the registry's view of an asset) and `FindObject` by path | S5 |
+| 25 | Tick functions and activation: `FTickFunction`, `bAutoActivate`, `ETickingGroup` | S7 |
+| 26 | Classes by path (`FSoftClassPath`), Blueprint parents without loading, `StaticEnum` display names | S7 |
+| 27 | `TStrongObjectPtr` (keeping a UObject alive from plain C++) | S7 |
 
 ---
 
@@ -426,3 +429,48 @@
 6. **Common mistakes.** Treating a redirector as the asset it points to; expecting `FindObject` to load.
 7. **Example.** `return !AssetData.IsRedirector();` · `UClass* Class = FindObject<UClass>(nullptr, TEXT("/Script/GameplayLintDataRules.GLRule_UnknownTag"));`
 8. **In this project.** Every data rule's `AppliesTo`. The rule tests find the packs' rule classes by path, so the bench module needs no pack header.
+
+## 25. Tick functions and activation: `FTickFunction`, `bAutoActivate`, `ETickingGroup`
+
+1. **What it is.**
+   - `FTickFunction` (`Engine/EngineBaseTypes.h`): one tick registration, with `bCanEverTick`, `bStartWithTickEnabled`, `TickInterval` and `TickGroup` (a `TEnumAsByte<ETickingGroup>`).
+   - An actor has `PrimaryActorTick`; a component has `PrimaryComponentTick`.
+   - `UActorComponent::bAutoActivate` (`ActorComponent.h:317`): activate the component when its actor initialises its components.
+2. **Why it exists.** Per-frame work is scheduled per object, in frame phases (`TG_PrePhysics`, `TG_DuringPhysics`, …), and can be throttled with an interval.
+3. **How it works.**
+   - At registration, a component's tick is enabled if it starts enabled or is already enabled (`ActorComponent.cpp:1739–1752`).
+   - `AActor::InitializeComponents` activates each `bAutoActivate` component (`Actor.cpp:6399`), and `Activate` calls `SetComponentTickEnabled(true)` (`ActorComponent.cpp:2815–2819`).
+   - A Blueprint compile copies the parent's `bCanEverTick` and sets it if the graph has a tick event (`KismetCompiler.cpp:5504`).
+4. **When to use it.** Reading what an object will do per frame, without spawning it.
+5. **When not to.** As the truth for a spawned object at run time; read its live tick state instead.
+6. **Common mistakes.** Deciding "never ticks" from `bStartWithTickEnabled` alone and forgetting auto-activation (the S7 code review); comparing a `TEnumAsByte` without `GetValue()`.
+7. **Example.** `return Tick.bCanEverTick && (Tick.bStartWithTickEnabled || Component.bAutoActivate);`
+8. **In this project.** `StartsTicking` and `TicksEveryFrame` in the UpdateBudget pack (`05` G2).
+
+## 26. Classes by path, and Blueprint parents without loading
+
+1. **What it is.**
+   - `FSoftClassPath` (`UObject/SoftObjectPath.h`): a class named by path; `ResolveClass()` finds it if it is loaded, and does not load it.
+   - `UBlueprint::GetBlueprintParentClassFromAssetTags(AssetData)` (`Blueprint.h:1094`; `Blueprint.cpp:2316–2333`): the native parent class from registry tags.
+   - `UBlueprint::GeneratedClass` and `UClass::GetDefaultObject<T>()`.
+   - `StaticEnum<E>()->GetDisplayNameTextByValue(Value)`: an enum value's display name.
+2. **Why it exists.** Settings must name classes from modules that may not exist in this project, and `CanValidateAsset` must decide without loading.
+3. **How it works.**
+   - The path is stored as text; `ResolveClass` is a lookup of loaded objects.
+   - The parent tag is written when the Blueprint is saved: `NativeParentClassPath` first, else `ParentClassPath`.
+4. **When to use it.** Plugin settings that refer to optional classes; registry-only filters.
+5. **When not to.** When the class must exist; load it explicitly with `TryLoadClass`.
+6. **Common mistakes.** Resolving the same paths inside an inner loop (the S7 code review: resolve once per check); expecting a class from an unloaded module to resolve.
+7. **Example.** `if (const UClass* Class = Path.ResolveClass()) { Out.Add(Class); }`
+8. **In this project.** `FClasses` and `NativeParent` in the UpdateBudget pack (`05` G2).
+
+## 27. `TStrongObjectPtr`
+
+1. **What it is.** A smart pointer that keeps a UObject alive: a reference the garbage collector sees (`Core/Public/UObject/StrongObjectPtrTemplates.h:25`; include `UObject/StrongObjectPtr.h`).
+2. **Why it exists.** A raw `UObject*` held by plain C++ code is invisible to the garbage collector; the object can be freed under it.
+3. **How it works.** The constructor registers the object as referenced; the destructor releases it. `Get()`, `operator*`, `operator->`, `explicit operator bool` (`:95–117`).
+4. **When to use it.** Short-lived C++ code (tests, tools) that must keep an object across calls that may collect garbage.
+5. **When not to.** Inside UObjects: use a `UPROPERTY`. For long-lived caches, prefer weak pointers, so nothing leaks.
+6. **Common mistakes.** Assuming no collection happens in between: compiling a Blueprint collects garbage (`BlueprintCompilationManager.cpp:423–427`).
+7. **Example.** `const TStrongObjectPtr<UEditorValidatorBase> Rule = NewRule(*this, ClassPath);`
+8. **In this project.** The rule tests (`05` F4); added after the first S7 test run crashed.

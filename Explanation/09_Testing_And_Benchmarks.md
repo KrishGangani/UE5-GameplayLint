@@ -220,8 +220,44 @@ un_scan.py --configs S,F0 --all-assets --label baseline` (pinned to `0xFFFF`; on
 
 ---
 
-## Steps S7–S8 and Phases 7–8 (to be written)
+## Phase 5 · Step S7: the UpdateBudget pack (2026-11-21)
 
-- S7–S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
+| # | Check | Command / job | Result |
+|---|---|---|---|
+| P5-6 | Build, tests, F1 run | job `20261121_062431_018fb5`: `build.bat` editor + game, `run_tests.bat`, `run_scan.py --configs F1 --runs 1 --no-prime --label s7` | ❌ Exit 3. Builds ✅ 0/0. Tests: the four data and walker tests passed, then `GameplayLint.Rules.UpdateBudget` **crashed the editor**: `EXCEPTION_ACCESS_VIOLATION reading address 0xffffffffffffffff` inside `UEditorValidatorBase::ValidateLoadedAsset`, called from the test's `Validate`. Cause: the test held its rule objects in raw pointers; compiling a test Blueprint runs a garbage collection (`BlueprintCompilationManager.cpp:423–427`), which freed them. Fix: `TStrongObjectPtr` for the rules and for the objects reused across cases (`06` §27, `07`) |
+| P5-7 | The same, after the fix | job `20261121_071612_b36ca2` | ✅ Exit 0. Builds: editor 14.9 s, game 1.0 s (up to date), **0 errors, 0 warnings**. **Tests ✅ 8/8**, including `GameplayLint.Rules.UpdateBudget` (16 cases). F1 run: exit 3, 9.6 s |
+| E1 | The pack plugs in without core changes | `git diff --stat -- GameplayLint/Plugins/GameplayLintCore` before the S7 commit | ✅ **0 lines changed** under `Plugins/GameplayLintCore/`. The second pack was added with settings, three rules, config and tests, and the framework did not change |
+
+**F1 correctness at N = 1,000** (batch `2026-11-21_083618_s7`, one run, all six rules):
+
+| Rule | Seeded defects | Found at rule level | Cells |
+|---|---|---|---|
+| `GL.UB.TickOutsideBudget` | 28 | **28 (100 %)** | an actor whose native parent ticks (9); a per-frame component that is a template (10), inherited (7) or on a shared parent (2) |
+| `GL.UB.ClientTickGroup` | 21 | **21 (100 %)** | template (6), subclass defaults (15) |
+| `GL.UB.ClientNeverTicks` | 26 | **26 (100 %)** | template (10), subclass defaults (16) |
+| The data rules | 125 | 125 (100 %), unchanged | |
+| **All rules** | **200** | **200 (100 %)** | |
+
+- **False positives:** 0 of 802 controls carry any finding. The UB near-misses (interval tickers, start-disabled tickers, allow-listed skeletal mesh and projectile movement) pass.
+- **Wrong-rule findings:** 0.
+- **Held out:** 0 of 1.
+- **Masked:** the 7 assets were not checked, as designed.
+- **Rule time per asset:** UB rules median 0.0014–0.0029 ms (356 and 506 assets: only actor and component Blueprints); the data rules unchanged.
+
+**Audit trail for S7:**
+- **`code-review` (medium):** 5 findings.
+  - **Important, fixed:** `bAutoActivate` was ignored. An auto-activating component's tick is enabled by `Activate` (`ActorComponent.cpp:2815–2819`, `Actor.cpp:6399`), so ClientNeverTicks would have failed a working client, and TickOutsideBudget would have missed a per-frame ticker. The fix is one shared `StartsTicking`.
+  - **Fixed:** the tests gained the missing paths (subclass defaults, opted-in scope, allow list, start-disabled and auto-activating tickers).
+  - **Fixed:** a never-ticking client in the wrong group was reported by two rules; the group check now skips it.
+  - **Fixed:** settings paths were resolved in the innermost loop; they are now resolved once per asset (`FClasses`).
+  - **Skipped:** isolating the test from the project's config. The settings class is private to the pack, and the test deliberately runs against the checked-in `DefaultEditor.ini`.
+- **`simplify`** (by myself): one finding, skipped. The test's `MakeBlueprint` / `AddComponent` resemble the seeder's helpers, but merging them would tie the corpus generator to test code, for four lines.
+- **The crash (P5-6)** was not found by review: neither the review nor I asked what can collect garbage between creating an object and using it.
+
+---
+
+## Step S8 and Phases 7–8 (to be written)
+
+- S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
 - Functional, edge-case and stability tests (Phase 7), including the on-save half of H3.
 - The full benchmark protocol and the SC1–SC7, E1–E2 results (Phase 8).

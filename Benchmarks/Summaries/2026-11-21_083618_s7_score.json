@@ -1,0 +1,270 @@
+{
+ "F1": {
+  "defects": 200,
+  "detected": 200,
+  "recall": 1.0,
+  "rules": {
+   "GL.UB.TickOutsideBudget": [
+    28,
+    28
+   ],
+   "GL.Data.UnknownTag": [
+    28,
+    28
+   ],
+   "GL.Data.DanglingRow": [
+    64,
+    64
+   ],
+   "GL.Data.Curve": [
+    33,
+    33
+   ],
+   "GL.UB.ClientTickGroup": [
+    21,
+    21
+   ],
+   "GL.UB.ClientNeverTicks": [
+    26,
+    26
+   ]
+  },
+  "cells": {
+   "GL.Data.Curve|CurveNonFinite|Array": [
+    2,
+    2
+   ],
+   "GL.Data.Curve|CurveNonFinite|BlueprintDefault": [
+    8,
+    8
+   ],
+   "GL.Data.Curve|CurveNonFinite|Instanced": [
+    6,
+    6
+   ],
+   "GL.Data.Curve|CurveNonFinite|Map": [
+    2,
+    2
+   ],
+   "GL.Data.Curve|CurveNonFinite|Nested": [
+    3,
+    3
+   ],
+   "GL.Data.Curve|CurveNonFinite|Row": [
+    8,
+    8
+   ],
+   "GL.Data.Curve|CurveRequired|Top": [
+    3,
+    3
+   ],
+   "GL.Data.Curve|CurveReversal|Top": [
+    1,
+    1
+   ],
+   "GL.Data.DanglingRow|CurveRowMissing|Top": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowMissing|Array": [
+    5,
+    5
+   ],
+   "GL.Data.DanglingRow|RowMissing|BlueprintDefault": [
+    7,
+    7
+   ],
+   "GL.Data.DanglingRow|RowMissing|Instanced": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowMissing|Map": [
+    2,
+    2
+   ],
+   "GL.Data.DanglingRow|RowMissing|Nested": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowMissing|Row": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowMissing|Top": [
+    2,
+    2
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Array": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowNullTable|BlueprintDefault": [
+    10,
+    10
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Instanced": [
+    4,
+    4
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Map": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Nested": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Row": [
+    5,
+    5
+   ],
+   "GL.Data.DanglingRow|RowNullTable|Top": [
+    3,
+    3
+   ],
+   "GL.Data.DanglingRow|RowRequired|Top": [
+    2,
+    2
+   ],
+   "GL.Data.UnknownTag|TagContainer|Top": [
+    1,
+    1
+   ],
+   "GL.Data.UnknownTag|TagSingle|Array": [
+    5,
+    5
+   ],
+   "GL.Data.UnknownTag|TagSingle|BlueprintDefault": [
+    2,
+    2
+   ],
+   "GL.Data.UnknownTag|TagSingle|Instanced": [
+    4,
+    4
+   ],
+   "GL.Data.UnknownTag|TagSingle|InstancedStruct": [
+    6,
+    6
+   ],
+   "GL.Data.UnknownTag|TagSingle|Map": [
+    4,
+    4
+   ],
+   "GL.Data.UnknownTag|TagSingle|Nested": [
+    2,
+    2
+   ],
+   "GL.Data.UnknownTag|TagSingle|Row": [
+    3,
+    3
+   ],
+   "GL.Data.UnknownTag|TagSingle|Top": [
+    1,
+    1
+   ],
+   "GL.UB.ClientNeverTicks|StartDisabled|Subclass": [
+    16,
+    16
+   ],
+   "GL.UB.ClientNeverTicks|StartDisabled|Template": [
+    10,
+    10
+   ],
+   "GL.UB.ClientTickGroup|TickGroup|Subclass": [
+    15,
+    15
+   ],
+   "GL.UB.ClientTickGroup|TickGroup|Template": [
+    6,
+    6
+   ],
+   "GL.UB.TickOutsideBudget|ActorTick|NativeParent": [
+    9,
+    9
+   ],
+   "GL.UB.TickOutsideBudget|Component|Inherited": [
+    7,
+    7
+   ],
+   "GL.UB.TickOutsideBudget|Component|Shared": [
+    2,
+    2
+   ],
+   "GL.UB.TickOutsideBudget|Component|Template": [
+    10,
+    10
+   ]
+  },
+  "controls": 802,
+  "fp_assets": 0,
+  "fp_rate": 0.0,
+  "false_positives": [],
+  "wrong_rule": [],
+  "missed": [],
+  "asset_level": {
+   "clean": [
+    0,
+    672
+   ],
+   "defect": [
+    200,
+    200
+   ],
+   "nearmiss": [
+    0,
+    130
+   ],
+   "heldout": [
+    0,
+    1
+   ],
+   "masked": [
+    7,
+    7
+   ]
+  },
+  "special": {
+   "heldout": [
+    0,
+    1
+   ],
+   "masked": [
+    0,
+    7
+   ]
+  },
+  "gap": null,
+  "check_times": {
+   "GL.Data.UnknownTag": {
+    "assets": 1003,
+    "median_ms": 0.0262,
+    "p99_ms": 0.05569400000000001
+   },
+   "GL.Data.DanglingRow": {
+    "assets": 1003,
+    "median_ms": 0.0319,
+    "p99_ms": 0.062091999999999994
+   },
+   "GL.Data.Curve": {
+    "assets": 1003,
+    "median_ms": 0.0124,
+    "p99_ms": 0.029996000000000002
+   },
+   "GL.UB.TickOutsideBudget": {
+    "assets": 356,
+    "median_ms": 0.0029,
+    "p99_ms": 0.012449999999999989
+   },
+   "GL.UB.ClientTickGroup": {
+    "assets": 506,
+    "median_ms": 0.002,
+    "p99_ms": 0.018084999999999993
+   },
+   "GL.UB.ClientNeverTicks": {
+    "assets": 506,
+    "median_ms": 0.0014,
+    "p99_ms": 0.0046
+   }
+  }
+ }
+}
