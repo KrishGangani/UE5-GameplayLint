@@ -10,6 +10,7 @@ public class GameplayLintDataRules : ModuleRules
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
 		// DataValidation: every module that defines a rule links the validator base itself (the link rule, 02 section 3).
-		PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "DataValidation", "GameplayTags", "GameplayLintCore" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "DataValidation", "GameplayTags", "GameplayLintCore",
+			"AssetRegistry", "Projects", "SourceControl" });   // S8: dependents (registry queries; the project's plugins; DataValidationChangelist.h includes SourceControl headers)
 	}
 }

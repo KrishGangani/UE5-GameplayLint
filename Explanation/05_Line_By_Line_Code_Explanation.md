@@ -11,6 +11,7 @@
 | E | S4 (rule base, walker, tests) | `GameplayLintRule.h/.cpp`, `GameplayLintWalker.h/.cpp`, `Tests\GLTestRule.h`, `Tests\GameplayLintCoreTests.cpp`, `Tools\run_tests.bat` |
 | F | S5–S6 (data rules) | `GLDataRules.h/.cpp`, the pack's `Build.cs` and `.uplugin`, `Tests\GameplayLintRuleTests.cpp`, `Tests\GLTestHelpers.h` |
 | G | S7 (UpdateBudget pack) | `GLUpdateBudgetRules.h/.cpp`, the pack's `Build.cs` and `.uplugin`, `Config\DefaultEditor.ini`, the UpdateBudget test |
+| H | S8 (incremental runs) | `GLDataRulesDependents.cpp`, `GLUpdateBudgetDependents.cpp`, the core's dependents count, `Tools\score.py --incremental` |
 
 ---
 
@@ -555,3 +556,43 @@ A second rule pack, built against the core's public API only. **E1:** the S7 com
 | ClientTickGroup cases | A client in the right group; a client template in `TG_DuringPhysics`; a client subclass whose defaults are in `TG_PostPhysics`; a never-ticking client in another group, which is reported only by ClientNeverTicks |
 | ClientNeverTicks cases | A start-disabled template; start-disabled subclass defaults; a start-disabled client that auto-activates (no finding); a ticking client |
 | Depends on the project's config | The settings class is private to the pack. The test runs against the checked-in `DefaultEditor.ini`, and changing that file is meant to fail the test |
+
+---
+
+## Part H · Incremental runs: dependents (S8)
+
+### H1. `GameplayLintDataRules\Private\GLDataRulesDependents.cpp`
+
+| Part | Why |
+|---|---|
+| `IsTagConfig(File)` | A tags `.ini` (`Config/Tags/*.ini`, `DefaultGameplayTags.ini`). A relative path from a CI change file is made absolute against the project first (S8 code review) |
+| `IsTagSourceTable(Data)` | A DataTable whose registry tag `RowStructure` is `FGameplayTagTableRow`: the other way to declare tags (S8 code review) |
+| `ProjectAssets(Registry)` | `/Game` plus the content of the project's own plugins (`IPluginManager`, `EPluginLoadedFrom::Project`, `06` §29). The engine's content is not the project's to re-check |
+| **UnknownTag**`::GatherDependents` | Only when a tag source changed. Coarse: every project package that names any tag. Precise: those that name a tag the dictionary no longer has. Both read searchable names from the registry, so nothing loads (`06` §28) |
+| **DanglingRow**`::GatherDependents` | A work list over changed packages. For each table: its current rows (Precise loads the table once), then each package referencer. Coarse adds them all; Precise adds those whose searchable names include a row of this table that is gone. A referencer that is a composite table goes onto the work list, because its rows changed with its parent (S8 code review) |
+| **Curve**`::GatherDependents` | Referencers of a changed `UCurveFloat`: their contracts are checked against its keys (`05` F2) |
+
+### H2. `GameplayLintUpdateBudget\Private\GLUpdateBudgetDependents.cpp`
+
+| Part | Why |
+|---|---|
+| `IsSettingsFile` | Any `*Editor.ini`, modified **or deleted**: the pack's settings are `config=Editor`, so platform layers count too (S8 code review) |
+| `Gather(Changelist, AppliesTo, OutAssets)` | Settings changed: every Blueprint the rule applies to. A Blueprint changed: the Blueprints that derive from it (`GetDerivedClassNames`, which includes the class itself, `AssetRegistry.cpp:9742`), and, for a component Blueprint, the actors that use it (its package referencers). Every addition is filtered by the rule's `AppliesTo` |
+| The three `GatherDependents` | One line each: the shared `Gather` with the rule's own `AppliesTo` |
+
+### H3. Changes elsewhere in S8
+
+| File | Change | Why |
+|---|---|---|
+| `GameplayLintRule.cpp` (core) | After `GatherDependents`: one entry per asset; drop any asset the changelist already holds | The recorded "dependents added" is then what the rule really added (S8 code review: duplicates and changed assets were counted). The engine validates a union anyway; only the statistic was wrong |
+| Both packs' `Build.cs` | `AssetRegistry`, `SourceControl` (`DataValidationChangelist.h` includes its headers); the data pack also `Projects` | The registry queries, the changelist header, the plugin manager |
+| Both rule headers | A `GatherDependents` override on every rule | The core calls it only when `-GameplayLintDependents` is not `Off` |
+| `GameplayLintSeedCommandlet.cpp` | M3's ticker is named `M3Ticker` | No seeded defect uses that name, so `score.py` can attribute M3's findings exactly |
+| `Tools\score.py --batch <mutated> --incremental <original>` | New findings = full F1 on the mutated corpus minus full F1 on the original, keyed by (asset, rule, where); attributed to M1 (rows `T30`/`T31` of tables A/B), M2 (`Fixture.Removable.*`), M3 (`Component[M3Ticker]`); anything else is "unexplained", which M4 must leave empty. Per I configuration: assets validated, new findings found, recall, dependents gathered (sum over rules) and gathering time |
+
+### H4. `Tools\make_charts.py` (end of Phase 5)
+
+| Part | Why |
+|---|---|
+| `stock_flagged_by_rule` | Asset-level stock detection per defect class: the ground truth of the baseline batch and its first F0 report (any error or warning on the asset) |
+| `detection_chart`, `time_chart` | Plain SVG written by hand (no plotting library), so the charts can be regenerated with `python -I` alone. The numbers come from the S7 score file and the baseline batch |

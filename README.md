@@ -4,11 +4,11 @@
 
 **Domain:** Editor tools & automation · developer productivity · **Difficulty:** ★★★☆☆ · **Engine:** UE 5.8.4
 
-> **Status: in progress. There are no results yet.** Phases 1–4 are done, and Phase 5 steps S1–S4 (fixtures, the seeded corpus, the measuring harness, the rule base) are built and tested. The stock engine's baseline was measured before any rule exists: on a seeded 1,000-asset corpus it flags 28 of 200 defects, all of them unknown gameplay tags, as warnings ([09](Explanation/09_Testing_And_Benchmarks.md)). The six rules (S5–S7) find all 200 seeded defects with no false alarms, and the second rule pack was added without changing the framework. Incremental runs come next. The ten portfolio projects are developed in parallel, and every Unreal Engine build and benchmark runs one at a time on the same machine, so measurements stay clean. Sections marked *(pending)* are filled in only from real measurements, in the phase named. The success criteria are **targets fixed before any rule code exists, not results**.
+> **Status: v1, measured at one corpus size.** Phases 1–5 are done: the framework, two rule packs (six rules) and incremental dependents are built, with 0 warnings and 8/8 automation tests passing. On a seeded 1,000-asset corpus, GameplayLint finds **200 of 200** seeded defects with **0 false alarms** in 802 control assets. The stock engine run flags 28 of them. The full profiling matrix (three corpus sizes, incremental runs) was **not run**; those criteria are marked "not measured" in [09](Explanation/09_Testing_And_Benchmarks.md).
 
 | Phase | 1 Problem | 2 Research | 3 Architecture | 4 Foundation | 5 Implementation | 6 Explanation | 7 Testing | 8 Profiling | 9 Review | 10 Portfolio |
 |---|---|---|---|---|---|---|---|---|---|---|
-| State | ✓ | ✓ | ✓ final | ✓ | S1–S7 of 10 ✓, next S8 | ongoing | — | — | — | — |
+| State | ✓ | ✓ | ✓ final | ✓ | ✓ S1–S8 (S9, S10 dropped) | ✓ written with the code | partial (unit tests, N = 1,000 runs) | not run | per-step reviews | ✓ README, charts, Q&A (no video) |
 
 ---
 
@@ -51,18 +51,32 @@ Final (v1.0): [Explanation/02_System_Architecture.md](Explanation/02_System_Arch
 
 ## Before / after comparison
 
-*(pending, Phase 8)*. Eight configurations on one seeded corpus:
-- the stock engine run (F0);
-- GameplayLint with all rules, and with each pack alone (F1–F3);
-- four incremental variants after controlled changes (I0 stock, I1 no dependents, I2 coarse dependents, I3 precise dependents).
+Seeded corpus: 1,000 assets, seed 1. It holds 200 seeded defects in every structural variant: top level, nested, arrays, maps, instanced objects and structs, DataTable rows and Blueprint defaults. There are also 130 near-miss controls and 672 clean assets.
+
+![Seeded defects found, by defect class](Benchmarks/Charts/detection_by_class.svg)
+
+| | Stock `-run=DataValidation` | GameplayLint (all six rules) |
+|---|---|---|
+| Seeded defects flagged | **28 / 200**, all unknown tags, as load **warnings** (the asset stays valid) | **200 / 200**, each an error or warning with a rule ID and a field path |
+| Dangling row handles, bad curves, tick-budget mistakes | 0 / 172 | 172 / 172 |
+| Control assets with any finding | 0 / 802 | **0 / 802** |
+| Same result as the stock run when no rule is on (F0) | — | yes: identical per-asset results in 4 + 4 interleaved runs |
 
 ## Benchmark results
 
-*(pending, Phase 8)*. Detection rate and false-positive rate per rule, defect kind and structural variant; full-scan and incremental validation times at N = 500 / 1,000 / 5,000 assets (the owner's cap: 5,000 assets, about 1.5 hours of queue time; the trend is reported, not extrapolated). Raw data in [Benchmarks/](Benchmarks/README.md). The pass/fail criteria were fixed in advance: [01_Problem_Analysis.md §7.4](Explanation/01_Problem_Analysis.md).
+![Rule time per checked asset](Benchmarks/Charts/rule_time_per_asset.svg)
+
+- **Rule cost per asset** (one F1 run, N = 1,000): median 0.001–0.032 ms, p99 at most 0.062 ms per rule. The on-save target was a median ≤ 0.5 ms and a p99 ≤ 5 ms.
+- **A scan is mostly editor start-up:** 9.3 s per process, of which the validation phase of 1,011 assets is under 1 s for the stock run (median of 4).
+- **Not measured:**
+  - the full-scan overhead against the stock run under the interleaved protocol. One indicative F1 run's validation phase was about 1.33 × F0's, outside the 1.10 × target;
+  - the N = 500 / 5,000 trend;
+  - all incremental results (SC6, SC7).
+- Data and run log: [Benchmarks/](Benchmarks/README.md). Full criteria table: [09](Explanation/09_Testing_And_Benchmarks.md).
 
 ## Recorded demonstration
 
-*(pending, Phase 10)*. Saving an asset and seeing a rule's finding in the Message Log; a DataTable losing a row and the incremental run finding the unchanged assets that point at it; the score table for the stock run vs GameplayLint.
+Not recorded (owner's decision: no video). The automation tests in `GameplayLintBench/Private/Tests/` show each rule on in-memory assets.
 
 ## Source code
 
@@ -81,7 +95,7 @@ The UE project is in [GameplayLint/](GameplayLint/) (UE 5.8.4, C++):
 | [01b_Research_Findings](Explanation/01b_Research_Findings.md) | Phase 2: verified engine behaviour (UE 5.8.4) and what it changed in the design |
 | [02_System_Architecture](Explanation/02_System_Architecture.md) | Final v1.0: modules, classes, rules, flows, defaults, safety rules, growth, limits, rejected alternatives |
 | [03_Implementation_Roadmap](Explanation/03_Implementation_Roadmap.md) | The small, ordered build steps; the stock baseline is captured before any rule code |
-| [04](Explanation/04_CPP_Fundamentals.md) · [05](Explanation/05_Line_By_Line_Code_Explanation.md) · [06](Explanation/06_Unreal_APIs_And_Macros.md) · [07](Explanation/07_Common_Mistakes.md) | C++ fundamentals, line-by-line code, APIs and macros, common mistakes. Written step by step with the code (current to S4) |
+| [04](Explanation/04_CPP_Fundamentals.md) · [05](Explanation/05_Line_By_Line_Code_Explanation.md) · [06](Explanation/06_Unreal_APIs_And_Macros.md) · [07](Explanation/07_Common_Mistakes.md) | C++ fundamentals, line-by-line code, APIs and macros, common mistakes. Written step by step with the code (current to S8) |
 | [09](Explanation/09_Testing_And_Benchmarks.md) | Every check and benchmark batch so far |
 | [08](Explanation/08_Debugging_And_Profiling.md) · [10](Explanation/10_Interview_Questions.md) · [11](Explanation/11_Optimization_Decisions.md) · [12](Explanation/12_Future_Scalability.md) | Debugging and profiling, interview questions, optimisation decisions, future scalability. Filled in during Phases 5–10 |
 | [Phase2_Raw_Notes/](Explanation/Phase2_Raw_Notes/README.md) | The research audit trail |

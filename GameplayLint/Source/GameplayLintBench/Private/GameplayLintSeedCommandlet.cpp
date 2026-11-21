@@ -787,7 +787,7 @@ namespace GameplayLintSeed
 			UE_LOG(LogGameplayLintSeed, Error, TEXT("M3: %s not found"), *ParentPath);
 			return false;
 		}
-		AddComponent(Parent, UGLFixtureTicker::StaticClass(), TEXT("Ticker"));
+		AddComponent(Parent, UGLFixtureTicker::StaticClass(), TEXT("M3Ticker"));   // a name no seeded defect uses: score.py attributes by it
 		FKismetEditorUtilities::CompileBlueprint(Parent);
 		if (!SaveAsset(Parent))
 		{

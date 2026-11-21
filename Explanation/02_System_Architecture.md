@@ -274,10 +274,19 @@ DanglingRow, precise:
       for each package P referencing T's package:          // registry, no load
           for each searchable-name dependency (T, Row) of P:
               if Row not in Rows: victims += P's assets; break
-UnknownTag, precise (only if a tags .ini changed):
-  for each package P in scope:                             // registry only
+      if P is a composite table: treat P as changed too    // its rows came from T (S8 review)
+UnknownTag, precise (only if a tag source changed: a tags .ini, or a DataTable of FGameplayTagTableRow):
+  for each package P in /Game and the project's plugins:   // registry only; paths in the change may be relative
       for each searchable-name dependency (FGameplayTag, Name) of P:
           if not RequestGameplayTag(Name, false): victims += P's assets; break
+Curve (coarse = precise):
+  for each changed UCurveFloat C: victims += assets of every package referencing C
+UpdateBudget rules (coarse = precise; filtered by the rule's AppliesTo):
+  if a *Editor.ini changed or was deleted: victims += every Blueprint
+  for each changed Blueprint B:
+      victims += Blueprints deriving from B                // registry class hierarchy
+      if B is a component Blueprint: victims += its package referencers   // actors that use it
+Core, for every rule: one entry per asset, none already in the change; the count is recorded per rule
 ```
 
 ## 7. Defaults and why

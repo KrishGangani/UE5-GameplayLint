@@ -52,6 +52,7 @@ public:
 protected:
 	virtual bool AppliesTo(const FAssetData& AssetData) const override;
 	virtual void CheckAsset(UObject* Asset, FGameplayLintContext& Lint) const override;
+	virtual void GatherDependents(const UDataValidationChangelist& Changelist, EGameplayLintDependents Mode, TArray<FAssetData>& OutAssets) const override;
 };
 
 /** GL.UB.ClientTickGroup: a budget client that ticks in another group than the scheduler. */
@@ -66,6 +67,7 @@ public:
 protected:
 	virtual bool AppliesTo(const FAssetData& AssetData) const override;
 	virtual void CheckAsset(UObject* Asset, FGameplayLintContext& Lint) const override;
+	virtual void GatherDependents(const UDataValidationChangelist& Changelist, EGameplayLintDependents Mode, TArray<FAssetData>& OutAssets) const override;
 };
 
 /** GL.UB.ClientNeverTicks: a budget client whose tick can never start, so its native path never runs. */
@@ -80,4 +82,5 @@ public:
 protected:
 	virtual bool AppliesTo(const FAssetData& AssetData) const override;
 	virtual void CheckAsset(UObject* Asset, FGameplayLintContext& Lint) const override;
+	virtual void GatherDependents(const UDataValidationChangelist& Changelist, EGameplayLintDependents Mode, TArray<FAssetData>& OutAssets) const override;
 };

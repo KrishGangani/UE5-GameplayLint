@@ -34,6 +34,8 @@
 | 25 | Tick functions and activation: `FTickFunction`, `bAutoActivate`, `ETickingGroup` | S7 |
 | 26 | Classes by path (`FSoftClassPath`), Blueprint parents without loading, `StaticEnum` display names | S7 |
 | 27 | `TStrongObjectPtr` (keeping a UObject alive from plain C++) | S7 |
+| 28 | Asset registry queries for dependents: searchable names, referencers, derived classes | S8 |
+| 29 | `IPluginManager`: the project's plugins and their content roots | S8 |
 
 ---
 
@@ -474,3 +476,33 @@
 6. **Common mistakes.** Assuming no collection happens in between: compiling a Blueprint collects garbage (`BlueprintCompilationManager.cpp:423–427`).
 7. **Example.** `const TStrongObjectPtr<UEditorValidatorBase> Rule = NewRule(*this, ClassPath);`
 8. **In this project.** The rule tests (`05` F4); added after the first S7 test run crashed.
+
+## 28. Asset registry queries for dependents
+
+1. **What it is.**
+   - `IAssetRegistry` (`AssetRegistry/Public/AssetRegistry/IAssetRegistry.h`): `GetChecked()` (`:272`), `GetAssetsByPackageName` (`:298`), `GetAssetsByPath` (`:311`), `GetAssetsByClass` (`:335`), `GetDependencies(FAssetIdentifier, …, EDependencyCategory)` (`:517`), `GetReferencers(FName, …)` (`:598`) and `GetDerivedClassNames` (`:664`).
+   - `FAssetIdentifier` (`CoreUObject/Public/AssetRegistry/AssetIdentifier.h`): a package, or a package + object + value. The `(UObject*, Value)` constructor takes the object's package and name (`AssetData.cpp:1386–1395`).
+2. **Why it exists.** Who uses what, without loading anything: the registry keeps every package's dependencies from the package headers on disk.
+3. **How it works.**
+   - Saving a package records hard and soft package dependencies, and **searchable names**: values such as a tag or a DataTable row that the saver marked with `MarkSearchableName` (`GameplayTagContainer.cpp:957, 1647`; `DataTable.cpp:1115–1121`).
+   - A searchable name is the identifier `(struct or table package, struct or table name, value name)`.
+   - The class hierarchy includes Blueprint classes, from their tags.
+4. **When to use it.** Deciding which assets a change can break, before loading them.
+5. **When not to.** When the answer needs the asset's current content (a table's rows: load it once).
+6. **Common mistakes.**
+   - Counting the same asset once per path that reaches it (the S8 review: the core now de-duplicates).
+   - Looking only under `/Game` (project plugins have content too).
+   - Expecting a row handle with a null table to be recorded (it isn't, `DataTable.cpp:1117`).
+7. **Example.** `Registry.GetDependencies(FAssetIdentifier(Package), Names, UE::AssetRegistry::EDependencyCategory::SearchableName);`
+8. **In this project.** Every rule's `GatherDependents` (`05` H1, H2).
+
+## 29. `IPluginManager`: the project's plugins and their content
+
+1. **What it is.** The plugin manager (`Projects/Public/Interfaces/IPluginManager.h`): `IPluginManager::Get().GetEnabledPluginsWithContent()` (`:435`). For each plugin: `GetLoadedFrom()` (`:253`, `EPluginLoadedFrom::Engine` or `Project`, `:18–25`) and `GetMountedAssetPath()` (`:161`), its content root, such as `/MyPlugin/`.
+2. **Why it exists.** Tools need to know which plugins are loaded and where their content is mounted.
+3. **How it works.** Each plugin with `CanContainContent` gets a mount point; the registry lists its assets under that root.
+4. **When to use it.** Scoping a scan to "the project's own content".
+5. **When not to.** For engine plugins' content, which is not the project's to re-check.
+6. **Common mistakes.** Forgetting the trailing `/` in the mount path when a registry query wants a path without it; adding the `Projects` module to the build rules is required.
+7. **Example.** `if (Plugin->GetLoadedFrom() == EPluginLoadedFrom::Project) { Roots.Add(FName(*Plugin->GetMountedAssetPath().LeftChop(1))); }`
+8. **In this project.** `ProjectAssets` in the data pack's dependents (`05` H1).

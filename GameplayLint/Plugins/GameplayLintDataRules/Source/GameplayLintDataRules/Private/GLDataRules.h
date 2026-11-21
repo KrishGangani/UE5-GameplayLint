@@ -18,6 +18,7 @@ public:
 protected:
 	virtual bool AppliesTo(const FAssetData& AssetData) const override;
 	virtual void CheckAsset(UObject* Asset, FGameplayLintContext& Lint) const override;
+	virtual void GatherDependents(const UDataValidationChangelist& Changelist, EGameplayLintDependents Mode, TArray<FAssetData>& OutAssets) const override;
 };
 
 /**
@@ -35,6 +36,7 @@ public:
 protected:
 	virtual bool AppliesTo(const FAssetData& AssetData) const override;
 	virtual void CheckAsset(UObject* Asset, FGameplayLintContext& Lint) const override;
+	virtual void GatherDependents(const UDataValidationChangelist& Changelist, EGameplayLintDependents Mode, TArray<FAssetData>& OutAssets) const override;
 };
 
 /**
@@ -53,4 +55,5 @@ public:
 protected:
 	virtual bool AppliesTo(const FAssetData& AssetData) const override;
 	virtual void CheckAsset(UObject* Asset, FGameplayLintContext& Lint) const override;
+	virtual void GatherDependents(const UDataValidationChangelist& Changelist, EGameplayLintDependents Mode, TArray<FAssetData>& OutAssets) const override;
 };

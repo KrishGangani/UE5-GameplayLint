@@ -3,6 +3,7 @@
 Usage:
     python -I Tools/score.py --batch <batch>                 every configuration of the batch, F0 as the stock baseline
     python -I Tools/score.py --selftest
+    python -I Tools/score.py --batch <mutated batch> --incremental <original batch>   SC6: I0-I3 vs new F1 findings
 
 Definitions (fixed in 01 section 7.3 before any rule existed):
   * A seeded defect is (asset, expected rule). GameplayLint DETECTS it if the report has a finding of that rule on
@@ -176,6 +177,69 @@ def main_batch(batch: str) -> int:
     return 0
 
 
+# --- Incremental runs (SC6, 01 section 7.3) ---------------------------------------------------------------------------
+# M1-M4 are applied together. The new defects are the findings of a full F1 scan of the mutated corpus that a full F1
+# scan of the original corpus did not have, keyed by (asset, rule, where). Each is attributed to the mutation that
+# explains it; M4 (a harmless edit) must explain nothing, so anything unexplained is listed.
+
+
+def finding_keys(report: dict) -> set[tuple[str, str, str]]:
+    return {(f["asset"], f["rule"], f["where"]) for f in report.get("findings", []) if f["asset"].startswith(CORPUS_PREFIX)}
+
+
+def mutation_of(finding: dict) -> str:
+    message = finding.get("message", "")
+    if (finding["rule"] == "GL.Data.DanglingRow" and ("'T30'" in message or "'T31'" in message)
+            and ("DT_TargetsA" in message or "DT_TargetsB" in message)):
+        return "M1"   # the rows M1 removed, from the tables it removed them from
+    if finding["rule"] == "GL.Data.UnknownTag" and "Fixture.Removable." in message:
+        return "M2"   # the tags whose file M2 deleted
+    if finding["rule"] == "GL.UB.TickOutsideBudget" and finding["where"] == "Component[M3Ticker]":
+        return "M3"   # the component M3 added (no seeded defect uses that name)
+    return "unexplained"
+
+
+def main_incremental(batch: str, original: str) -> int:
+    reports = reports_of(batch)
+    before = reports_of(original).get("F1", [])
+    if not before or "F1" not in reports:
+        print("need an F1 run in both batches (the original corpus and the mutated one)")
+        return 2
+    reference = reports["F1"][0]
+    by_key = {(f["asset"], f["rule"], f["where"]): f for f in reference.get("findings", [])}
+    new_keys = finding_keys(reference) - finding_keys(before[0])
+    gone = finding_keys(before[0]) - finding_keys(reference)
+    by_mutation = Counter(mutation_of(by_key[k]) for k in new_keys)
+    lines = [f"# Incremental score of batch {batch}", "",
+             f"Reference: the full F1 scan of the mutated corpus in this batch, minus the full F1 scan of batch `{original}`.", "",
+             f"- New findings after M1-M4: **{len(new_keys)}** ({', '.join(f'{m}: {n}' for m, n in sorted(by_mutation.items())) or 'none'}).",
+             f"- Findings that disappeared: {len(gone)}.", "",
+             "| Config | Assets validated | New findings found | Recall of new findings | Dependents added | Gathering (ms) |",
+             "|---|---|---|---|---|---|"]
+    results = {"new": len(new_keys), "by_mutation": dict(by_mutation), "gone": len(gone), "configs": {}}
+    for config in sorted(c for c in reports if c.startswith("I")):
+        run = reports[config][0]
+        found = new_keys & finding_keys(run)
+        dependents = run.get("dependents") or {}
+        added = sum(d.get("assets_added", 0) for d in dependents.values()) if isinstance(dependents, dict) else 0
+        gather_ms = sum(d.get("ms", 0.0) for d in dependents.values()) if isinstance(dependents, dict) else 0.0
+        recall = len(found) / len(new_keys) if new_keys else 1.0
+        results["configs"][config] = {"validated": run.get("counts", {}).get("checked"), "found": len(found),
+                                      "recall": recall, "dependents_added": added, "gather_ms": gather_ms,
+                                      "missed": sorted(str(k) for k in new_keys - found)[:50]}
+        lines.append(f"| {config} | {run.get('counts', {}).get('checked', 'n/a')} | {len(found)} / {len(new_keys)} | "
+                     f"{pct(recall)} | {added} | {gather_ms:.1f} |")
+    unexplained = sorted(str(k) for k in new_keys if mutation_of(by_key[k]) == "unexplained")
+    lines += ["", "Unexplained new findings (M4 must add none): " + (", ".join(unexplained) if unexplained else "none.")]
+    path = os.path.join(SUMMARY_DIR, f"{batch}_incremental.md")
+    with open(path, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write("\n".join(lines) + "\n")
+    with open(os.path.join(SUMMARY_DIR, f"{batch}_incremental.json"), "w", encoding="utf-8", newline="\n") as handle:
+        json.dump(results, handle, indent=1)
+    print(f"incremental score written to {path}")
+    return 0
+
+
 def selftest() -> int:
     """Hand-checked numbers on a tiny ground truth and report (09: S3 tool check)."""
     assert abs(percentile([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], 50) - 5.5) < 1e-9
@@ -210,12 +274,16 @@ def selftest() -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--batch")
+    parser.add_argument("--incremental", metavar="ORIGINAL_BATCH",
+                        help="score the I configurations of --batch (mutated corpus) against the F1 run of ORIGINAL_BATCH")
     parser.add_argument("--selftest", action="store_true")
     args = parser.parse_args()
     if args.selftest:
         return selftest()
     if not args.batch:
         parser.error("--batch or --selftest")
+    if args.incremental:
+        return main_incremental(args.batch, args.incremental)
     return main_batch(args.batch)
 
 

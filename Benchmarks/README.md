@@ -46,6 +46,10 @@ Command line:      exact, per run, in the manifest
 Runs:              per combination: smallest multiple of the config count that is >= 4 (interleaved, rotated) + 1 priming run per batch
 ```
 
+## Charts
+
+`python -I Tools/make_charts.py` draws `Charts/detection_by_class.svg` and `Charts/rule_time_per_asset.svg` from the S3 baseline and S7 batches below.
+
 ## Run log
 
 | Batch | Configs | N | Runs | Purpose | Summary |

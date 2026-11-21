@@ -256,8 +256,37 @@ un_scan.py --configs S,F0 --all-assets --label baseline` (pinned to `0xFFFF`; on
 
 ---
 
-## Step S8 and Phases 7–8 (to be written)
+## Phase 5 · Step S8: dependents, and the end of Phase 5 (2026-11-21)
 
-- S8: F1 correctness runs per rule pack, the incremental scenarios M1–M4 (SC6).
-- Functional, edge-case and stability tests (Phase 7), including the on-save half of H3.
-- The full benchmark protocol and the SC1–SC7, E1–E2 results (Phase 8).
+**Owner's direction (2026-11-21):** finish now. Make one build-and-test job; no new benchmark campaign. The S8 measurement job (F1 before and after M1–M4, then I0–I3) was cancelled in the queue before it ran. The cook-reachability rule (S10) and the fixer (S9) are dropped and moved to `12`.
+
+| # | Check | Command / job | Result |
+|---|---|---|---|
+| P5-8 | Build and tests with the S8 code (dependents in all six rules, the core's de-duplicated count, `score.py --incremental`) | job `20261121_103007_82b8c1`: `build.bat` editor + game, `run_tests.bat` | ✅ Exit 0. Builds: editor 22.1 s, game 1.0 s, **0 errors, 0 warnings**. **Tests ✅ 8/8.** The incremental path is built but **not measured**: no I0–I3 run exists |
+
+**Audit trail for S8:** `code-review` (medium) gave 8 findings, all fixed before the build.
+- **Counting:** dependents were counted per path, not per asset.
+- **Missed edges:** actors that use a changed component Blueprint; tag DataTables as a tag source; relative paths in change files; project-plugin content; composite tables; settings files that were deleted or are platform layers.
+- **Scoring:** the attribution in `score.py` could explain any finding.
+
+`simplify` (by myself): no change. The three UB `GatherDependents` bodies are one-line forwards, and a macro would be worse.
+
+---
+
+## Success criteria: results from the data that exists (N = 1,000, seed 1)
+
+The criteria were fixed in `01` §7.4 before any rule existed. Phase 8's matrix (three sizes, F0–F3 interleaved, I0–I3) **was not run**, so every criterion is answered only at N = 1,000, from the batches below, or is marked not measured.
+
+| Criterion | Target | Result | Data |
+|---|---|---|---|
+| **SC1** Detection | F1 ≥ 95 % of seeded defects at rule level, every N; every cell with ≥ 10 defects ≥ 90 % | ✅ **at N = 1,000: 200 / 200 (100 %)**; every cell 100 %. Not measured at N = 500 or 5,000 | `2026-11-21_083618_s7` (one F1 run) |
+| **SC2** False alarms | ≤ 0.5 % of control assets with any finding, every N | ✅ **at N = 1,000: 0 of 802 (0 %)**; 0 wrong-rule findings. Not measured at other N | same |
+| **SC3** Gap over stock | ≥ 50 % of defects found by F1 and not flagged at all by F0 | ✅ **172 / 200 (86 %)**. F0 flagged only the 28 unknown tags, through the tag system's load warning, as warnings (asset still valid); F1 reports them as errors with a rule ID and a field path. Rows, curves and all UB defects: stock 0 | `2026-11-21_041526_baseline` (S and F0, 4 + 4 runs) vs `…_s7` |
+| **SC4** Full-scan overhead | Validation phase F1 ≤ 1.10 × F0 (F2, F3 ≤ 1.05 ×), N = 1,000 and 5,000 | **Not measured** to the protocol (no interleaved F0/F1 batch). Indicative only: one F1 run 1.29 s vs F0 median 0.97 s, about 1.33 ×, which **would fail** the target if an interleaved batch confirmed it. The F1 run also logs 200 findings that F0 doesn't | `…_s7` vs `…_baseline`, different batches |
+| **SC5** On-save cost | Per-asset rule time median ≤ 0.5 ms, p99 ≤ 5 ms | ✅ **at N = 1,000:** worst median 0.032 ms (DanglingRow), worst p99 0.062 ms. One run | `…_s7` `check_times_ms` |
+| **SC6** Incremental completeness | I3 finds 100 % of the new defects after M1–M3; M4 adds 0 | **Not measured.** The code and the scorer exist; no I run was made | — |
+| **SC7** Incremental speed | I3 validation ≤ 10 % of F1's at N = 5,000; gathering ≤ 1.0 s | **Not measured** | — |
+| **E1** Extensibility | A new pack changes 0 core lines | ✅ S7: 0 lines under `Plugins/GameplayLintCore/` | `09` S7 |
+| **E2** Reproducibility | Same seed, same corpus hash; another seed, another hash | ✅ seed 1 twice `38a3e124…`, seed 2 `e6bdcc7a…`, in two jobs | `09` P5-2, P5-3 |
+
+**Hypotheses:** H2 and H4 are supported, and H3 (fresh-load half) too (`09` S3 baseline). H5 is partly answered. H1 and H6 are not measured: they needed the incremental and multi-size runs.

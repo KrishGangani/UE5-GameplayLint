@@ -83,6 +83,14 @@ TArray<FAssetData> UGameplayLintRule::GetAssetsToValidateFromChangelist(UDataVal
 	}
 	const uint64 Start = FPlatformTime::Cycles64();
 	GatherDependents(*InChangelist, Mode, Assets);
+	// One entry per asset, and none the changelist already holds: the recorded count is what this rule added (S8 review).
+	TSet<FSoftObjectPath> Seen;
+	Assets.RemoveAll([&Seen, InChangelist](const FAssetData& Asset)
+	{
+		bool bAlreadySeen = false;
+		Seen.Add(Asset.GetSoftObjectPath(), &bAlreadySeen);
+		return bAlreadySeen || InChangelist->ModifiedPackageNames.Contains(Asset.PackageName);
+	});
 	if (UGameplayLintReportSubsystem* Report = GameplayLintRule::Report())
 	{
 		Report->RecordDependents(RuleId, Assets.Num(), FPlatformTime::ToMilliseconds64(FPlatformTime::Cycles64() - Start));

@@ -74,6 +74,19 @@ Paths are relative to `Engine/`; `EVS.cpp` is `Plugins/Editor/DataValidation/Sou
 | Expecting `+Array=` in `DefaultEditor.ini` to *add to* the constructor's defaults | Default entries (here UE5-UpdateBudget's own client class) disappear | A config array with entries replaces the constructor's list (`ProcessArrayProperty`, `EmptyAndAddValues`); repeat the defaults in the ini if they must stay | Print the settings object after start-up |
 | A rule pack that includes another module's private headers, or a test that needs them | Build errors as soon as the other module moves code; hidden coupling | Name classes by path (`FSoftClassPath`); tests find rule classes by path too (`05` F4) | `grep -r "Private/" *.Build.cs` |
 
+## Step S8: dependents (Phase 5)
+
+| Mistake | How to spot it | How to prevent it | How to debug it |
+|---|---|---|---|
+| ⚠ caught (code review): **counting dependents per path, not per asset**. An asset referencing two changed tables was counted twice, and the same children were counted by three UB rules | "Dependents added" larger than the number of assets validated | De-duplicate in the core, and drop assets the changelist already holds; report the union (assets validated) next to the per-rule sums | Compare the report's `counts.checked` with the dependents total |
+| ⚠ caught (code review): **following only one kind of edge**. Derived classes were followed, but not the actors that use a changed component Blueprint as a component | A change to a component Blueprint is missed in incremental runs | List every way a rule's verdict on asset X can depend on asset Y, and follow each edge | Write the change, run I3 and F1, and compare the new findings |
+| ⚠ caught (code review): **one kind of tag source only** (`.ini` files). A tag DataTable (`FGameplayTagTableRow`) declares tags too | Removing a tag from a table is missed | Treat both as tag sources (`05` H1) | `RowStructure` in the table's registry tags |
+| ⚠ caught (code review): **matching file paths that may be relative** (`/Config/Tags/` needs a leading slash) | M2 recall 0 with a hand-written change file | Make paths absolute against the project before matching | Print the paths the changelist holds |
+| ⚠ caught (code review): **scoping a "whole project" query to `/Game`** | Assets in project plugins are never re-checked | `/Game` plus each project plugin's mount point (`06` §29) | `GetAssetsByPath` per root |
+| ⚠ caught (code review): **forgetting tables that inherit rows** (`UCompositeDataTable`) | A handle to a composite's row breaks unseen when a parent table loses it | Follow a composite referencer as if it had changed | A test with a parent, a composite and a handle |
+| ⚠ caught (code review): **settings changes detected by one exact file name, modified only** | Deleting the file, or a platform layer, changes verdicts unseen | Any `*Editor.ini`, modified or deleted | List the config hierarchy of the settings class |
+| ⚠ caught (code review): **a scoring rule that can explain any finding** (every new UB finding counted as M3) | A control mutation (M4) can never fail | Attribute by an exact mark: the rows and tables M1 edits, the component name `M3Ticker` | Inject an unrelated finding and check it is reported as unexplained |
+
 ## Data Validation: pitfalls found in Phase 2 (designed against)
 
 | Mistake | How to spot it | How to prevent it | How to debug it |

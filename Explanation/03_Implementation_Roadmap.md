@@ -11,7 +11,7 @@
 
 ---
 
-**Progress (2026-11-21):** Phases 1–3 ✅. **Phase 4 ✅** (F1–F3; checks F-1 to F-6 and T-1 in `09`). **S1–S4 ✅** (one commit: they were built, seeded, measured and tested as one queue chain; `09` P5-1 to P5-3). The stock baseline was captured before any rule code: S = F0, and the stock run flags 28 of 200 seeded defects, all of them unknown tags. **S5 ✅** (`09` P5-4): UnknownTag 28/28, DanglingRow 64/64, 0 false positives. **S6 ✅** (`09` P5-5): Curve 33/33; the data rules find 125/125 with 0 false positives. **S7 ✅** (`09` P5-6, P5-7, E1): all six rules find 200/200 with 0 false positives; the pack changed 0 core lines. Next: **S8**.
+**Progress (2026-11-21):** Phases 1–3 ✅. **Phase 4 ✅** (F1–F3; checks F-1 to F-6 and T-1 in `09`). **S1–S4 ✅** (one commit: they were built, seeded, measured and tested as one queue chain; `09` P5-1 to P5-3). The stock baseline was captured before any rule code: S = F0, and the stock run flags 28 of 200 seeded defects, all of them unknown tags. **S5 ✅** (`09` P5-4): UnknownTag 28/28, DanglingRow 64/64, 0 false positives. **S6 ✅** (`09` P5-5): Curve 33/33; the data rules find 125/125 with 0 false positives. **S7 ✅** (`09` P5-6, P5-7, E1): all six rules find 200/200 with 0 false positives; the pack changed 0 core lines. **S8 ✅ built and tested** (`09` P5-8); its incremental runs were not measured. **S9 and S10 dropped** (owner's direction, 2026-11-21: finish now), and moved to `12`. Phases 7–8 were not run; `09` has the SC table from the existing data.
 
 ## Phase 4: Foundation (no rule code yet) ✅
 
